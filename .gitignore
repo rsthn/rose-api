@@ -1,0 +1,9 @@
+--*
+vendor/
+.svn
+.git
+*.log
+*.tmp
+volatile/
+composer.lock
+deploy.js

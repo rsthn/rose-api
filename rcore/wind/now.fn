@@ -1,0 +1,4 @@
+
+(yield (&
+	message: "Current date and time is: (datetime::now)"
+))
