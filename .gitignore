@@ -1,7 +1,6 @@
 --*
 vendor/
 .svn
-.git
 *.log
 *.tmp
 volatile/

@@ -2,16 +2,9 @@
     "name": "rsthn/rose-webservice",
     "description": "Rose Web Service Project Skeleton",
     "homepage": "https://github.com/rsthn/rose-webservice",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "project",
     "license": "Apache-2.0",
-    "authors": [
-        {
-            "name": "Jonathan Palencia",
-            "email": "strikeone88@rsthn.com",
-            "role": "Developer"
-        }
-    ],
     "minimum-stability": "stable",
     "require": {
         "rsthn/rose-core": "^3.0",
