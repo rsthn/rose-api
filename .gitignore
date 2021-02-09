@@ -1,8 +1,0 @@
---*
-vendor/
-.svn
-*.log
-*.tmp
-volatile/
-composer.lock
-deploy.js
