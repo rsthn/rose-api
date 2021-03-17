@@ -1,6 +1,6 @@
 # Rose Web Service - Project Skeleton
 
-This repository contains a sample project to use as skeleton to build web services with Rose and its internal extension Wind. Install using composer:
+This repository contains a sample project to use as skeleton to build web services with Rose to be fully compliant with [Wind](https://github.com/rsthn/rose-core/blob/master/Wind.md). Install using composer:
 
 ```sh
 composer create-project rsthn/rose-webservice <target-directory>
@@ -55,65 +55,11 @@ _Note that the `rose-env` file should not be commited to ensure it is never over
 
 # API Interaction
 
-## Requests
-
-Requests can be sent with either HTTP method (GET or POST) to the API end-point (where you installed this project), with the `Content-Type` header set to `application/x-www-form-urlencoded` or `multipart/form-data` (if files are uploaded to the service).
+The web service provided by this project is compliant with Wind, more information about it can be found in the [Wind](https://github.com/rsthn/rose-core/blob/master/Wind.md) API behavior documentation.
 
 - The root folder for all API functions (`.fn` files) is `rcore/wind` because Wind is the Rose service that will take care of the web-service interaction.
 - The `f` request parameter indicates the name of the function to execute, this parameter can have only the characters `[#A-Za-z0-9.,_-]`, any other character will be removed.
 - The dot `.` character is used as path separator, therefore invoking `sys.users.add` will cause Wind to load the `rcore/wind/sys/users/add.fn` file.
-
-&nbsp;
-## Responses
-
-Firstly, responses are always a JSON object (unless otherwise explicitly specified) with a mandatory integer field named `response` which indicates the response code. Wind describes several standard response codes as follows:
-
-|Response Code|Short Name|Details|
-|-------------|----------|-----------|
-|200|R_OK|Everything was completed without errors.
-|400|R_FUNCTION_NOT_FOUND|The respective file for the function name in parameter `f` was not found.
-|403|R_PRIVILEGE_REQUIRED|Function requires the invoker to have certain privilege (i.e. `admin`).
-|404|R_NOT_FOUND|A requested resource could not be found.
-|407|R_VALIDATION_ERROR|One or more request fields did not pass validation checks. A field named `fields` will be found in the response, this is an object with the offending request parameter name(s) and their respective error message.
-|408|R_NOT_AUTHENTICATED|Function requires the invoker to be an authenticated user.
-|409|R_CUSTOM_ERROR|A field named `error` in the response will have the complete error message.
-
-&nbsp;
-## Multi-Request Mode
-
-This mode can be used to run multiple requests (up to 16) in a single web-request. To use this feature use the `rpkg` parameter which is a list of semi-colon separated `id,data` pairs, where `id` is the name you want the response to have when returned, and `data` is the Base64 encoded request parameters.
-
-For example, consider the following value for `rpkg`:
-
-```
-r0,Zj11c2Vycy5jb3VudA==;r1,Zj11c2Vycy5saXN0;
-```
-
-- It describes two requests, `r0` and `r1`.
-- The first request (r0) has parameters `f=users.count` (obtained by Base64 decoding the data),
-- And the second one (r1) has parameters `f=users.list`.
-
-This effectively causes Wind to execute functions `users.count` and `users.list` (let's assume the first returns count=1 and the second returns an array with one user).
-
-The response will be returned as follows:
-
-```json
-{
-  "response": 200,
-  "r0": {
-    "response": 200,
-    "count": 1
-  },
-  "r1": {
-    "response": 200,
-    "data": [
-      {"id": "1", "username": "admin", "name": "Administrator"} 
-    ]
-  }
-}
-```
-
-Note that the result object contains the results of both calls identified respectively by their `id` (as specified manually by the invoker in the `rpkg` field). This can use useful to batch certain API calls together and reduce server round-trip times.
 
 <br/>
 
