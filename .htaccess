@@ -1,0 +1,5 @@
+Options -Indexes
+
+<Files ~ "\.(conf|plain|sql|log)$|^\.">
+	require all denied
+</Files>

@@ -2,7 +2,7 @@
     "name": "rsthn/rose-webservice",
     "description": "Rose Web Service Project Skeleton",
     "homepage": "https://github.com/rsthn/rose-webservice",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "type": "project",
     "license": "Apache-2.0",
     "minimum-stability": "stable",
