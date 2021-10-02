@@ -1,5 +1,5 @@
 Options -Indexes
 
-<Files ~ "\.(conf|plain|sql|log)$|^\.">
+<Files ~ "\.(conf|ini|plain|sql|log)$|^\.">
 	require all denied
 </Files>

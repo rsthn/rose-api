@@ -1,0 +1,14 @@
+
+(set query (file::read "@local/clear.sql"))
+
+(each query (filter i (split ";" (query)) (ne '' (i)))
+	(set value '')
+	(try (@
+		(db::exec (query))
+		(set value 'OK')
+	)
+	catch
+		(set value 'ERROR: (err)\n\n(query)')
+	)
+	(value)
+)
