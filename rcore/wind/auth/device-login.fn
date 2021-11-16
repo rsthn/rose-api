@@ -1,0 +1,65 @@
+;
+;	Attempts to login to the system given the device_id.
+;
+;	[input]
+;	string device_id
+;
+;	[output]
+;	int response
+;	string error
+;	string status
+;
+;	[status]
+;	success
+;	initial_config_required
+;
+;	[error]
+;	@messages.err_device_not_registered
+;	@messages.err_not_authenticated
+;
+
+(shield::validate
+	(shield::field device_id
+		required true
+		pattern uuid
+	)
+)
+
+(set status "success")
+
+(if (isnull (db::scalar `SELECT 1 FROM ##devices WHERE device_id={!device_id}`))
+	(throw (s "@messages.err_device_not_registered")))
+
+(when (sentinel::status)
+	(if (ne (device_id) (session.device_id))
+		(trace "[(datetime::now)] [alert] mismatch of device_id, user_id=(session.user.user_id), passed=(device_id), stored=(session.device_id)"))
+
+	(if (isnull (session.user.name))
+		(set status "initial_config_required"))
+
+	(return (&
+		status (status)
+	))
+)
+
+(set session_id (db::scalar `
+	SELECT s.session_id
+	FROM ##sessions s
+	INNER JOIN ##devices d ON d.device_id=s.device_id
+	WHERE d.device_id={!device_id}
+`))
+
+(if (isnull (session_id))
+	(throw (s "@messages.err_not_authenticated")))
+
+(session::id (session_id))
+(session::open)
+
+(trace "[(datetime::now)] [notice] restored session (session::id) for device (device_id), data=(session)")
+
+(if (isnull (session.user.name))
+	(set status "initial_config_required"))
+
+(&
+	status (status)
+)

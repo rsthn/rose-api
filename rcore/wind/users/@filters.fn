@@ -1,0 +1,63 @@
+
+(set field_names (&
+    id         		"x.user_id"
+    created         "x.created"
+    username       	"x.username"
+    name      		"x.name"
+    email      		"x.email"
+))
+
+(shield::validate
+
+    (shield::field sort
+        default-stop "created"
+        pattern `/^(id|created|username|name|email)$/`
+        set (field_names.($))
+    )
+
+    (shield::field order
+        default-stop "desc"
+        pattern `/^(asc|desc)$/`
+    )
+)
+
+(shield::validate filters
+
+    (shield::field f_is_active
+        set "x.is_active=1"
+    )
+
+    (shield::field id
+        required false
+        pattern integer
+        set "x.user_id = (!$)"
+    )
+
+    (shield::field f_username
+        required false
+        pattern text
+        set "x.username LIKE (escape (str % ($) %))"
+    )
+
+    (shield::field f_name
+        required false
+        pattern text
+        set "x.name LIKE (escape (str % ($) %))"
+    )
+
+    (shield::field f_is_authorized
+        required false
+        pattern bit
+        set "x.is_authorized=($)"
+    )
+
+    (shield::field f_email
+        required false
+        pattern text
+		set "(escape (str % ($) %))"
+        set "\(x.email LIKE ($)\)"
+    )
+
+)
+
+(set filters (str `(` (join " AND " (values (filters))) `)`))

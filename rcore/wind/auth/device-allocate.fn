@@ -1,0 +1,25 @@
+;
+;	Allocates a new device.
+;
+;	[input]
+;	string agent
+;
+;	[output]
+;	int response
+;	string device_id
+;
+
+(shield::validate
+	(shield::field agent
+		required true
+		pattern text
+	)
+)
+
+(set device_id (utils::uuid))
+
+(db::exec `INSERT INTO ##devices SET device_id={!device_id}, created={!datetime::now}, agent={!agent}`)
+
+(&
+	device_id (device_id)
+)

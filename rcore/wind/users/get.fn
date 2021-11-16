@@ -1,0 +1,10 @@
+
+(sentinel::privilege-required "admin")
+
+(shield::validate
+    (shield::field id
+        required true
+    )
+)
+
+(call "users.list")

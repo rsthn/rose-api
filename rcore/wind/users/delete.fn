@@ -1,0 +1,13 @@
+
+(sentinel::privilege-required "admin")
+
+(shield::validate
+    (shield::field id
+        required true
+        pattern integer
+        check:record_not_found (isnotnull (db::scalar `SELECT user_id FROM ##users WHERE is_active=1 AND user_id={$}`))
+    )
+)
+
+(db::exec `UPDATE ##users SET is_active=0 WHERE user_id={id}`)
+(&)

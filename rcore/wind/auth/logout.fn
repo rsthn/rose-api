@@ -1,0 +1,5 @@
+
+(sentinel::logout)
+(session::destroy)
+
+(&)

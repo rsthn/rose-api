@@ -1,0 +1,15 @@
+
+(sentinel::auth-required)
+
+(set list (db::table `
+    SELECT
+		privilege_id as value
+
+    FROM ##privileges
+`))
+
+(for i (list)
+	(set i.label (s.enum.privileges.(i.value)))
+)
+
+(list)

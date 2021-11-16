@@ -1,0 +1,31 @@
+
+(sentinel::privilege-required "admin")
+
+(call "@filters")
+(call "pagination")
+
+(set list (db::table `
+    SELECT
+        x.user_id id,
+        x.created,
+        x.is_authorized,
+        x.username,
+        x.name,
+		x.email,
+		p.privilege_id
+
+    FROM ##users x
+    LEFT JOIN ##user_privileges up ON up.user_id=x.user_id
+    LEFT JOIN ##privileges p ON p.privilege_id=up.privilege_id
+
+    WHERE {filters}
+    ORDER BY {sort} {order}
+    LIMIT {offset}, {count}
+`))
+
+(for i (list)
+    (set i.s_created (locale::datetime (i.created)))
+	(set i.role (s.enum.privileges.(i.privilege_id)))
+)
+
+(return (list))
