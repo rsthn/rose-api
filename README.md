@@ -1,9 +1,9 @@
-# Rose Web Service - Project Skeleton
+# Rose API Project Skeleton
 
-This repository contains a sample project to use as skeleton to build web services with Rose to be fully compliant with [Wind](https://github.com/rsthn/rose-core/blob/master/Wind.md). Install using composer:
+This repository contains a sample project to use as skeleton to build APIs with Rose to be fully compliant with [Wind](https://github.com/rsthn/rose-core/blob/master/Wind.md). Install using composer:
 
 ```sh
-composer create-project rsthn/rose-webservice <target-directory>
+composer create-project rsthn/rose-api <target-directory>
 ```
 
 After installation edit your `composer.json` file to reflect your own project details.
@@ -55,9 +55,9 @@ _Note that the `rose-env` file should not be commited to ensure it is never over
 
 # API Interaction
 
-The web service provided by this project is compliant with Wind, more information about it can be found in the [Wind](https://github.com/rsthn/rose-core/blob/master/Wind.md) API behavior documentation.
+The service provided by this project is compliant with Wind, more information about it can be found in the [Wind](https://github.com/rsthn/rose-core/blob/master/Wind.md) API behavior documentation.
 
-- The root folder for all API functions (`.fn` files) is `rcore/wind` because Wind is the Rose service that will take care of the web-service interaction.
+- The root folder for all API functions (`.fn` files) is `rcore/wind` because Wind is the Rose service that will take care of the API interaction.
 - The `f` request parameter indicates the name of the function to execute, this parameter can have only the characters `[#A-Za-z0-9.,_-]`, any other character will be removed.
 - The dot `.` character is used as path separator, therefore invoking `sys.users.add` will cause Wind to load the `rcore/wind/sys/users/add.fn` file.
 
