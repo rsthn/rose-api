@@ -1,5 +1,15 @@
 Options -Indexes
 
+Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+#RewriteEngine On
+#RewriteBase /
+
+RewriteCond %{SCRIPT_FILENAME} !-f
+RewriteCond %{SCRIPT_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+
 <Files ~ "\.(conf|ini|plain|sql|log)$|^\.">
 	require all denied
 </Files>

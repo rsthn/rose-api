@@ -2,7 +2,7 @@
     "name": "rsthn/rose-api",
     "description": "Rose API Project Skeleton",
     "homepage": "https://github.com/rsthn/rose-api",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "type": "project",
     "license": "Apache-2.0",
     "minimum-stability": "stable",

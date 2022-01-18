@@ -71,19 +71,26 @@ CREATE TABLE ##user_privileges
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+
 CREATE TABLE ##tokens
 (
-	token varchar(128) primary key,
+	token_id int unsigned primary key auto_increment,
+
+	is_active tinyint not null default 1,
+	created datetime not null,
+
 	user_id int unsigned not null,
+	constraint foreign key (user_id) references ##users (user_id) on delete cascade,
 
 	is_authorized tinyint not null default 1,
-	is_active tinyint not null default 1,
 
-	constraint foreign key (user_id) references ##users (user_id) on delete cascade
+	token varchar(128) not null unique,
+	name varchar(128) default null
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci AUTO_INCREMENT=1;
 
 ALTER TABLE ##tokens ADD index n_is_active (is_active);
+
 
 
 /* ******************************************************************************************* */
