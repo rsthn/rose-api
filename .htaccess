@@ -3,12 +3,17 @@ Options -Indexes
 Header set Access-Control-Allow-Headers "Content-Type, Authorization"
 SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 
-#RewriteEngine On
-#RewriteBase /
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteBase /
 
-RewriteCond %{SCRIPT_FILENAME} !-f
-RewriteCond %{SCRIPT_FILENAME} !-d
-RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+	RewriteCond %{HTTPS} off
+	RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+	RewriteCond %{SCRIPT_FILENAME} !-f
+	RewriteCond %{SCRIPT_FILENAME} !-d
+	RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+</IfModule>
 
 <Files ~ "\.(conf|ini|plain|sql|log)$|^\.">
 	require all denied

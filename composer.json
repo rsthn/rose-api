@@ -2,13 +2,18 @@
     "name": "rsthn/rose-api",
     "description": "Rose API Project Skeleton",
     "homepage": "https://github.com/rsthn/rose-api",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "type": "project",
     "license": "Apache-2.0",
     "minimum-stability": "stable",
     "require": {
-        "rsthn/rose-core": "^3.0",
+        "rsthn/rose-core": "^4",
         "rsthn/rose-ext-sentinel": "^1.0",
         "rsthn/rose-ext-shield": "^1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "rsthn/rose-extension-installer": true
+        }
     }
 }
