@@ -1,14 +1,16 @@
 Options -Indexes
 
-Header set Access-Control-Allow-Headers "Content-Type, Authorization"
-SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+<IfModule mod_header.c>
+	Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+	SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
 
 <IfModule mod_rewrite.c>
 	RewriteEngine On
 	RewriteBase /
 
-	RewriteCond %{HTTPS} off
-	RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+	#RewriteCond %{HTTPS} off
+	#RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 	RewriteCond %{SCRIPT_FILENAME} !-f
 	RewriteCond %{SCRIPT_FILENAME} !-d
