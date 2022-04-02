@@ -92,6 +92,19 @@ ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci AUTO_INCREMENT=1;
 ALTER TABLE ##tokens ADD index n_is_active (is_active);
 
 
+/* ******************************************************************************************* */
+CREATE TABLE ##devices
+(
+	device_id varchar(48) primary key unique not null,
+	created datetime default null,
+
+	user_id int unsigned default null,
+	agent varchar(128) default null
+)
+ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+ALTER TABLE ##devices ADD CONSTRAINT FOREIGN KEY (user_id) references ##users (user_id) on delete cascade;
+
 
 /* ******************************************************************************************* */
 CREATE TABLE ##sessions
