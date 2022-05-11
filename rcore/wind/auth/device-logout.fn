@@ -1,8 +1,0 @@
-;
-;	Destroys the active session.
-;
-
-(sentinel::auth-required)
-
-(session::destroy)
-(&)

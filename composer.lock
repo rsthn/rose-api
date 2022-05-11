@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3754fece72e878488dfc6548c94f6034",
+    "content-hash": "8d1f4961d6b7a9d65358da71365992cb",
     "packages": [
         {
             "name": "rsthn/rose-core",
-            "version": "4.0.16",
+            "version": "4.0.19",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rsthn/rose-core.git",
-                "reference": "7a6fb84796962242c410f98e045247448a922047"
+                "reference": "5ba09100bb72ce462f73389187324208275b6db9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rsthn/rose-core/zipball/7a6fb84796962242c410f98e045247448a922047",
-                "reference": "7a6fb84796962242c410f98e045247448a922047",
+                "url": "https://api.github.com/repos/rsthn/rose-core/zipball/5ba09100bb72ce462f73389187324208275b6db9",
+                "reference": "5ba09100bb72ce462f73389187324208275b6db9",
                 "shasum": ""
             },
             "require": {
@@ -44,9 +44,9 @@
             "homepage": "https://github.com/rsthn/rose-core",
             "support": {
                 "issues": "https://github.com/rsthn/rose-core/issues",
-                "source": "https://github.com/rsthn/rose-core/tree/v4.0.16"
+                "source": "https://github.com/rsthn/rose-core/tree/v4.0.19"
             },
-            "time": "2022-04-02T10:17:32+00:00"
+            "time": "2022-04-06T00:07:01+00:00"
         },
         {
             "name": "rsthn/rose-ext-sentinel",
