@@ -15,7 +15,7 @@ Options -Indexes
 
 	RewriteCond %{SCRIPT_FILENAME} !-f
 	RewriteCond %{SCRIPT_FILENAME} !-d
-	RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+	RewriteRule . index.php [L,QSA]
 </IfModule>
 
 <Files ~ "\.(conf|ini|plain|sql|log)$|^\.">
