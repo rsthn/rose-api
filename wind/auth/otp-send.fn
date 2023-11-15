@@ -1,0 +1,41 @@
+;
+;	Sends a one-time-password (OTP) to the specified cellphone.
+;
+;	[input]
+;	string cellphone
+;	string device_id
+;
+;	[output]
+;	int response
+;	string error
+;
+;	[error]
+;	@messages.err_device_not_registered
+;
+
+(import "lib/directives")
+
+(shield::validate
+	(shield::field cellphone
+		required true
+		pattern cellphone
+	)
+
+	(shield::field device_id
+		required true
+		pattern uuid
+	)
+)
+
+(if (isnull (db::scalar `SELECT 1 FROM ##devices WHERE device_id={!device_id}`))
+	(throw (s "@messages.err_device_not_registered")))
+
+(set code (randcode 6))
+
+(d::string:set 0 "otp:(cellphone):value" (code))
+(d::string:set 0 "otp:(cellphone):device_id" (device_id))
+(d::integer:set 0 "otp:(cellphone):attempts" 0)
+
+;(twilio::send '(cellphone)' 'Your login code is: (code)')
+
+(&)

@@ -1,0 +1,27 @@
+
+(sentinel::auth-required)
+
+(import "lib/utils" as utils)
+
+(shield::validate form
+
+	(shield::field name
+		required false
+		pattern name
+		min-length 4
+	)
+
+	(shield::field email
+		required false
+		pattern email
+	)
+)
+
+(db::update "##users" `user_id={session.user.user_id}` (form))
+
+(utils::updatePicture (gateway.request) "photo" (session.user.user_id) "##users" "user_id" "photo" 512 512)
+
+(&
+	data (icall "account.get")
+	message (s "@messages.msg_details_saved")
+)

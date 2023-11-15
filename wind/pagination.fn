@@ -1,0 +1,14 @@
+
+(shield::validate
+    (shield::field offset
+        default-stop 0
+        pattern integer
+    )
+
+    (shield::field count
+        default-stop 25
+        pattern integer
+        min-value 1
+        max-value 1000
+    )
+)

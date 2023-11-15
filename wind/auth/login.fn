@@ -1,0 +1,15 @@
+
+(shield::validate form
+
+	(shield::field username
+		required true
+		pattern identifier
+	)
+
+	(shield::field password
+		required true
+	)
+)
+
+(sentinel::login (form.username) (form.password))
+(&)

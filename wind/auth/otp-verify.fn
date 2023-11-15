@@ -1,0 +1,81 @@
+;
+;	Verifies that the OTP code corresponding to the specified cellphone is valid (assuming a call to auth.otp-send was made first).
+;
+;	If the code is valid a session will be created and linked to the specified device_id.
+;	If the device_id is not registered a new user will be created.
+;
+;	[input]
+;	string cellphone
+;	string device_id
+;	string code
+;
+;	[output]
+;	int response
+;	string error
+;
+;	[error]
+;	@messages.err_otp_undefined
+;	@messages.err_otp_timeout
+;	@messages.err_otp_invalid
+;	@messages.err_otp_security
+;
+
+(import "lib/directives")
+
+(shield::validate
+	(shield::field cellphone
+		required true
+		pattern cellphone
+	)
+
+	(shield::field device_id
+		required true
+		pattern uuid
+	)
+
+	(shield::field code
+		required true
+		pattern integer
+	)
+)
+
+(if (not (d::exists 0 "otp:(cellphone):value"))
+	(throw (s "@messages.err_otp_undefined")))
+
+(set max_attempts (config.general.max_auth_attempts))
+(set attempts (+ 1 (d::integer:get 0 "otp:(cellphone):attempts")))
+
+(if (gt (attempts) (max_attempts))
+	(throw (s "@messages.err_otp_timeout")))
+
+(d::integer:set 0 "otp:(cellphone):attempts" (attempts))
+
+(if (ne (code) (d::string:get 0 "otp:(cellphone):value"))
+	(if (eq (attempts) (max_attempts))
+		(throw (s "@messages.err_otp_timeout")))
+
+	(return (&
+		response 409
+		error (s "@messages.err_otp_invalid")
+		attempts (- (max_attempts) (attempts))
+	))
+)
+
+(if (ne (device_id) (d::string:get 0 "otp:(cellphone):device_id"))
+	(throw (s "@messages.err_otp_security")))
+
+(d::delete 0 "otp:(cellphone):value")
+(d::delete 0 "otp:(cellphone):device_id")
+(d::delete 0 "otp:(cellphone):attempts")
+
+(if (isnull (db::scalar `SELECT user_id FROM ##users WHERE username={!cellphone}`))
+	(db::exec `INSERT INTO ##users SET created='{datetime::now}', username={!cellphone}`)
+)
+
+(sentinel::login:forced (db::scalar `SELECT user_id FROM ##users WHERE username={!cellphone}`))
+
+(set session.device_id (device_id))
+
+(db::exec `UPDATE ##devices SET user_id={session.user.user_id} WHERE device_id={!device_id}`)
+
+(&)

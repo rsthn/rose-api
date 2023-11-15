@@ -1,0 +1,35 @@
+
+(import "lib/directives")
+
+(if (ne (config.periodic.enabled) true)
+	(throw "not enabled"))
+
+(if (eq (d::integer:get 0 "periodic.last") 1)
+	(throw "already running"))
+
+(if (not (path::exists "periodic"))
+	(throw "periodic folder does not exist"))
+
+(if (d::exists 0 "periodic.last")
+	(set delta (datetime::diff (datetime::now) (d::string:get 0 "periodic.last")))
+ 	(if (lt (delta) (config.periodic.interval))
+		(throw "interval not reached \((- (config.periodic.interval) (delta)) seconds remaining\)"))
+)
+
+(d::string:set 0 "periodic.last" (datetime::now))
+(d::integer:set 0 "periodic.last" 1)
+
+(gateway::persistent)
+
+(for source (array::sort-asc (map file (dir::files "rcore/periodic" "/^[^-].+\.fn$/") "../(file.path)"))
+
+	(try
+		(require (source))
+	catch
+		(trace "(datetime::now) [periodic] (substr 18 (source)): (err)")
+	)
+)
+
+(d::integer:set 0 "periodic.count" (+ 1 (d::integer:get 0 "periodic.count")))
+(d::integer:set 0 "periodic.last" 0)
+(&)

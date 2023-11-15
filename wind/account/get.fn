@@ -1,0 +1,11 @@
+
+(sentinel::auth-required)
+
+(import "lib/utils" as utils)
+
+(sentinel::reload)
+
+(set data (map-get (# user_id created username photo name email privileges) (session.user)))
+(set data.photo_url (utils::getPictureUrl (data.photo)))
+
+(data)

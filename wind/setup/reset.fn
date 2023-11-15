@@ -1,0 +1,25 @@
+
+(shield::validate
+	(shield::field token
+		required true
+		pattern identifier
+		check:invalid-token (eq (config.Sentinel.token) ($))
+	)
+)
+
+(def-fn firstline value
+    (array::first (split "\n" (value)))
+)
+
+(set query (file::read "@local/db-schema.sql"))
+(set query (re::replace "|/\*.*?\*/|s" "" (query)))
+
+(content-type "text/plain")
+(join "\n" (each query (filter i (trim (split ";" (query))) (ne "" (i)))
+	(try
+		(db::exec (query))
+		(str "✅ " (firstline (query)))
+	catch
+		(str "⛔ " (firstline (query)) "\n💥 " (err))
+	)
+))
