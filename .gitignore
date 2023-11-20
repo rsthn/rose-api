@@ -4,5 +4,6 @@ vendor/
 *.log
 *.tmp
 volatile/
+storage/
 deploy.js
 VERSION.txt
