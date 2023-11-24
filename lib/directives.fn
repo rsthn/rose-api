@@ -1,111 +1,72 @@
 
-;
-;	Returns a random code of the specified size.
-;
-(def-fn randcode size
-    (join "" (repeat i count (size)
-        (mod (utils::rand) 10)
-    ))
+;; Returns a random code of the specified length (solely digits).
+;; @param {int} length
+;; @returns {string}
+;; 
+(def-fn dx::rand length
+    (set code "")
+    (while (lt (len (code)) (length))
+        (append code (mod (utils::rand) 100)))
+    (substr 0 (length) (code))
 )
 
 
-;
-;	Generates a unique code based on the current date and a few random values.
-;
-(def-fn uniquecode
-    (join "" (#
-        (substr 2 ((datetime::now).year))
-        ((datetime::now).month)
-        ((datetime::now).day)
-        "-"
-        (randcode 3)
-        "-"
-        (randcode 4)
-    ))
-)
-
-;
-;	Sets the value of an integer directive.
-;
+; Sets the value of an integer directive.
 (def-fn d::integer:set subject_id type value
     (db::exec `
         INSERT INTO ##directives SET
-            modified='{datetime::now}', subject_id={!subject_id}, type={!type}, i_value={!value}
+            last_modified='{datetime::now}', subject_id={!subject_id}, type={!type}, intval={!value}
         ON DUPLICATE KEY UPDATE
-            modified='{datetime::now}', i_value={!value}
+            last_modified='{datetime::now}', intval={!value}
     `)
 )
 
-;
-;	Returns the value of an integer directive.
-;
+; Returns the value of an integer directive.
 (def-fn d::integer:get subject_id type
-    (db::scalar `SELECT i_value FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`)
+    (db::scalar `SELECT intval FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`)
 )
 
-;
-;	Sets the value of an string directive.
-;
+; Sets the value of an string directive.
 (def-fn d::string:set subject_id type value
     (db::exec `
         INSERT INTO ##directives SET
-            modified='{datetime::now}', subject_id={!subject_id}, type={!type}, s_value={!value}
+            last_modified='{datetime::now}', subject_id={!subject_id}, type={!type}, strval={!value}
         ON DUPLICATE KEY UPDATE
-            modified='{datetime::now}', s_value={!value}
+            last_modified='{datetime::now}', strval={!value}
     `)
 )
 
-;
-;	Returns the value of an string directive.
-;
+; Returns the value of an string directive.
 (def-fn d::string:get subject_id type
-    (db::scalar `SELECT s_value FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`)
+    (db::scalar `SELECT strval FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`)
 )
 
-;
-;	Sets the value of an object directive.
-;
+; Sets the value of an object directive.
 (def-fn d::object:set subject_id type value
     (db::exec `
         INSERT INTO ##directives SET
-            modified='{datetime::now}', subject_id={!subject_id}, type={!type}, t_value={db::escape {utils::json:stringify {value}}}
+            last_modified='{datetime::now}', subject_id={!subject_id}, type={!type}, textval={db::escape {utils::json:stringify {value}}}
         ON DUPLICATE KEY UPDATE
-            modified='{datetime::now}', t_value={db::escape {utils::json:stringify {value}}}
+            last_modified='{datetime::now}', textval={db::escape {utils::json:stringify {value}}}
     `)
 )
 
-;
-;	Returns the value of an object directive.
-;
+; Returns the value of an object directive.
 (def-fn d::object:get subject_id type
-    (utils::json:parse (db::scalar `SELECT t_value FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`))
+    (utils::json:parse (db::scalar `SELECT textval FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`))
 )
 
-;
-;	Returns boolean indicating if the specified directive exists.
-;
+; Returns boolean indicating if the specified directive exists.
 (def-fn d::exists subject_id type
     (isnotnull (db::scalar `SELECT 1 FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`))
 )
 
-;
-;	Returns the subject_id given a directive type and string value.
-;
+; Returns the subject_id given a directive type and string value.
 (def-fn d::subject type value
-    (db::scalar `SELECT subject_id FROM ##directives WHERE type={!type} AND s_value={!value}`)
+    (db::scalar `SELECT subject_id FROM ##directives WHERE type={!type} AND strval={!value}`)
 )
 
-;
-;	Deletes a directive and all of its variations (string, integer and object).
-;
+; Deletes a directive and all of its variations (string, integer and object).
 (def-fn d::delete subject_id type
     (db::exec `DELETE FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`)
 )
-
-/*
-(? (not (contains (args) subject_id type))
-    (error `Parameter missing: {err}`))
-
-(return `LEFT JOIN ##directives {args.type} ON {args.type}.subject_id={escape {args.subject_id}} AND {args.type}.type='{args.type}'`)
-
-*/

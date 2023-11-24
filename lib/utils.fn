@@ -1,1 +1,41 @@
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+;; Updates the photo path in a database table and removes the old photo if exists. The image will
+;; be resized to the specified width and height (smartcut). Or if only one or the other of width and
+;; height is specified, the image will be resized to fit the specified width or height, respectively.
+;;
+;; @param {File} formFile
+;; @param {String} fieldId
+;; @param {String} id
+;; @param {String} targetTable
+;; @param {String} fieldPhoto
+;; @param {Number} width
+;; @param {Number} [height]
+;;
+(def-fn utils::update-photo formFile fieldId id targetTable fieldPhoto width height=0
+
+    (when (isnull (formFile)) (ret))
+
+    (set new_photo (image::load (formFile.path)))
+    (set old_photo (db::scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = $1` (# (id))))
+    (if (isnotnull (old_photo))
+        (file::remove (old_photo)))
+
+    (set target "storage/(replace '#' '' (targetTable))/(id)_(utils::rand).jpg")
+
+    (set new_photo (? (and (width) (height))
+        (image::smartcut (new_photo) (width) (height) 0 0 true)
+        (image::fit (new_photo) (width) (height) true)
+    ))
+
+    (file::write (target) (image::data (new_photo) "jpg"))
+    (db::exec `UPDATE {targetTable} SET {fieldPhoto} = $1 WHERE {fieldId} = $2` (# (target) (id) ))
+)
+
+;; Returns the URL of the picture. If the picture does not exist, returns the URL of the default image.
+;; @param {String} photoPath
+;; @param {String} [defaultPath]
+;; @returns {String}
+;;
+(def-fn utils::photo-url photoPath defaultPath="def-storage/blank.png"
+    (str (gateway.ep) "/" (?? (photoPath) (defaultPath)))
+)
