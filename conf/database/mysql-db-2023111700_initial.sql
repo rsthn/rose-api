@@ -3,7 +3,7 @@ CREATE TABLE directives
 (
     subject_id INT NOT NULL DEFAULT 0,
     type VARCHAR(128) NOT NULL,
-    last_modified TIMESTAMP DEFAULT NULL,
+    last_modified DATETIME DEFAULT NULL,
     strval VARCHAR(8192) DEFAULT NULL,
     intval INT DEFAULT 0,
     textval TEXT DEFAULT NULL,
@@ -17,9 +17,9 @@ CREATE INDEX directives_type ON directives (type);
 CREATE TABLE users
 (
     user_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    created_at TIMESTAMP NOT NULL,
-    deleted_at TIMESTAMP DEFAULT NULL,
-    blocked_at TIMESTAMP DEFAULT NULL,
+    created_at DATETIME NOT NULL,
+    deleted_at DATETIME DEFAULT NULL,
+    blocked_at DATETIME DEFAULT NULL,
     username VARCHAR(256) NOT NULL,
     password VARCHAR(96) NOT NULL
 )
@@ -53,11 +53,11 @@ CREATE INDEX user_privileges_flag ON user_privileges (user_id, flag);
 --------------------------------------------------------------------------------
 CREATE TABLE tokens
 (
-    token_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    created_at TIMESTAMP NOT NULL,
-    deleted_at TIMESTAMP DEFAULT NULL,
-    blocked_at TIMESTAMP DEFAULT NULL,
-    user_id INT UNSIGNED NOT NULL,
+    token_id INT PRIMARY KEY AUTO_INCREMENT,
+    created_at DATETIME NOT NULL,
+    deleted_at DATETIME DEFAULT NULL,
+    blocked_at DATETIME DEFAULT NULL,
+    user_id INT NOT NULL,
     token VARCHAR(128) NOT NULL UNIQUE,
     name VARCHAR(128) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (user_id)
@@ -83,7 +83,7 @@ CREATE INDEX token_privileges_flag ON token_privileges (token_id, flag);
 CREATE TABLE devices
 (
     device_id VARCHAR(48) PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT NULL,
+    created_at DATETIME DEFAULT NULL,
     ipaddr VARCHAR(128) DEFAULT NULL,
     user_id INT DEFAULT NULL,
     user_agent VARCHAR(128) DEFAULT NULL,
@@ -95,8 +95,8 @@ ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 CREATE TABLE sessions
 (
     session_id VARCHAR(48) PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT NULL,
-    last_activity TIMESTAMP DEFAULT NULL,
+    created_at DATETIME DEFAULT NULL,
+    last_activity DATETIME DEFAULT NULL,
     device_id VARCHAR(48) DEFAULT NULL,
     user_id INT DEFAULT NULL,
     data VARCHAR(8192) DEFAULT NULL,
