@@ -1,15 +1,77 @@
+;;
+;;  [api] @generic
+;;  POST /auth/login
+;;  Authenticates a user using a username and password.
+;;
+;;  [input]
+;;  content: application/x-www-form-urlencoded
+;;  type: object
+;;  properties:
+;;    user_agent:
+;;      type: string
+;;      description: User agent of the device making the request.
+;;    username:
+;;      type: string
+;;      description: User identifier.
+;;    password:
+;;      type: string
+;;      description: User password.
+;;    code:
+;;      type: string
+;;      description: Authorization code sent to the user.
+;;  required:
+;;    - user_agent
+;;    - username
+;;    - password
+;;
+;;  [output]
+;;  content: application/json
+;;  type: object
+;;  properties:
+;;      response:
+;;          type: integer
+;;          description: Response code.
+;;      action_required:
+;;          type: boolean
+;;          description: Whether the user needs to provide an authorization code sent to them.
+;;      device_token:
+;;          type: string
+;;          description: Device token.
+;;      device_secret:
+;;          type: string
+;;          description: Device secret.
+;;
 
-(shield::validate form
+(import "lib/directives")
+(import "lib/common")
 
-	(shield::field username
-		required true
-		pattern identifier
-	)
+(shield::validate input
 
-	(shield::field password
-		required true
-	)
+    (shield::field user_agent
+        required true
+        pattern text
+        set (substr 0 256 ($))
+    )
+
+    (shield::field username
+        required true
+        pattern identifier
+    )
+
+    (shield::field password
+        required true
+        min-length 8
+        max-length 256
+    )
+
+    (shield::field code
+        required false
+        pattern integer
+    )
 )
 
-(sentinel::login (form.username) (form.password))
-(&)
+(sentinel::login (input.username) (input.password))
+
+(stop (&
+    action_required false
+))

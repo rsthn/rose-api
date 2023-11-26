@@ -1,13 +1,13 @@
 
 ;; Returns a random code of the specified length (solely digits).
-;; @param {int} length
+;; @param {int} digits
 ;; @returns {string}
 ;; 
-(def-fn dx::rand length
+(def-fn dx::rand digits
     (set code "")
-    (while (lt (len (code)) (length))
-        (append code (mod (utils::rand) 100)))
-    (substr 0 (length) (code))
+    (while (lt (len (code)) (digits))
+        (append code (mod (utils::rand) 10)))
+    (substr 0 (digits) (code))
 )
 
 

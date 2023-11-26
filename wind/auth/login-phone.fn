@@ -1,0 +1,119 @@
+;;
+;;  [api] @generic
+;;  POST /auth/login-phone
+;;  Authenticates a user using a phone number and a one-time-code.
+;;
+;;  [input]
+;;  content: application/x-www-form-urlencoded
+;;  type: object
+;;  properties:
+;;    user_agent:
+;;      type: string
+;;      description: User agent of the device making the request.
+;;    username:
+;;      type: string
+;;      format: +111
+;;      description: Phone country code (3 digits with a plus sign).
+;;    phone_number:
+;;      type: string
+;;      description: Phone number (8 digits).
+;;    one_time_code:
+;;      type: string
+;;      description: One time code (6 digits).
+;;  required:
+;;    - user_agent
+;;    - phone_country_code
+;;    - phone_number
+;;
+;;  [output]
+;;  content: application/json
+;;  type: object
+;;  properties:
+;;      response:
+;;          type: integer
+;;          description: Response code.
+;;      action_required:
+;;          type: boolean
+;;          description: Whether the user needs to provide an one-time-code sent to their device.
+;;      device_token:
+;;          type: string
+;;          description: Device token.
+;;      device_secret:
+;;          type: string
+;;          description: Device secret.
+;;
+
+(import "lib/directives")
+(import "lib/common")
+
+(shield::validate input
+
+    (shield::field user_agent
+        required true
+        pattern text
+        set (substr 0 256 ($))
+    )
+
+    (shield::field phone_country_code
+        required true
+        pattern phone_country_code
+    )
+
+    (shield::field phone_number
+        required:phone_number true
+        pattern phone_number
+    )
+
+    (shield::field one_time_code
+        required false
+        pattern one_time_code
+    )
+)
+
+(session::open true)
+
+(set phone_number "(input.phone_country_code)(input.phone_number)")
+(when (not (input.one_time_code))
+    (set session.one_time_code (dx::rand (config.Sentinel.otp_size)))
+    (trace "[OTP] [(datetime::now)] phone=(phone_number), one_time_code=(session.one_time_code)")
+    (twilio::send "(phone_number)" "🚗 (session.one_time_code) es tu código de verificación de Carrito HN")
+    (stop (&
+        action_required true
+    ))
+)
+
+;; verify the one-time-code is correct and clear it from the session if it is valid
+(when-not (eq (input.one_time_code) (session.one_time_code))
+    (throw "@messages.invalid_one_time_code"))
+
+(set session.one_time_code null)
+
+;; load the user exists or create a new user if it doesn't exist
+(set user (db::row "SELECT * FROM users WHERE phone_number=$1 AND deleted_at IS NULL" (phone_number) ))
+(when-not (user)
+    (set user (db::row `INSERT INTO users (created_at, phone_number, name) VALUES ($1, $2, $3) RETURNING user_id` (datetime::now) (phone_number) ""))
+)
+
+;; create a new device, and issue the respective device token and secret
+(set device_token (utils::randstr-base64 256))
+(set device_secret (utils::randstr-base64 256))
+
+(set device_id (db::insert "devices" (&
+    created_at (datetime::now)
+    ipaddr (gateway.remoteAddress)
+    user_id (user.user_id)
+    user_agent (input.user_agent)
+    token (device_token)
+    secret (device_secret)
+)))
+
+;; authenticate the user and record the device_id in the session
+(sentinel::login-user (user.user_id))
+(set session.device_id (device_id))
+(common::reload-user-details)
+
+(stop (&
+    action_required false
+    device_token (device_token)
+    device_secret (device_secret)
+))
