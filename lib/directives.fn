@@ -3,7 +3,7 @@
 ;; @param {int} digits
 ;; @returns {string}
 ;; 
-(def-fn dx::rand digits
+(def-fn dve::rand digits
     (set code "")
     (while (lt (len (code)) (digits))
         (append code (mod (utils::rand) 10)))
@@ -11,62 +11,109 @@
 )
 
 
-; Sets the value of an integer directive.
-(def-fn d::integer:set subject_id type value
+;; Returns boolean indicating if the specified directive exists.
+;; @param {string} type
+;; @param {int} [subject_id]
+;; @returns {bool}
+(def-fn dve::exists type subject_id=0
+    (isnotnull (db::scalar `SELECT 1 FROM ##directives WHERE subject_id=? AND type=?`
+        (subject_id) (type)
+    ))
+)
+
+;; Sets the value of an integer directive.
+;; @param {string} type
+;; @param {int} value
+;; @param {int} [subject_id]
+(def-fn dve::set-int type value subject_id=0
     (db::exec `
         INSERT INTO ##directives SET
-            last_modified='{datetime::now}', subject_id={!subject_id}, type={!type}, intval={!value}
+            last_modified=?, subject_id=?, type=?, intval=?
         ON DUPLICATE KEY UPDATE
-            last_modified='{datetime::now}', intval={!value}
-    `)
+            last_modified=?, intval=?
+    `
+        (datetime::now) (subject_id) (type) (value)
+        (datetime::now) (value)
+    )
 )
 
-; Returns the value of an integer directive.
-(def-fn d::integer:get subject_id type
-    (db::scalar `SELECT intval FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`)
+;; Returns the value of an integer directive.
+;; @param {string} type
+;; @param {int} [subject_id]
+;; @returns {int}
+(def-fn dve::get-int type subject_id=0
+    (db::scalar `SELECT intval FROM ##directives WHERE subject_id=? AND type=?`
+        (subject_id) (type)
+    )
 )
 
-; Sets the value of an string directive.
-(def-fn d::string:set subject_id type value
+;; Sets the value of an string directive.
+;; @param {string} type
+;; @param {string} value
+;; @param {int} [subject_id]
+(def-fn dve::set-str type value subject_id=0
     (db::exec `
         INSERT INTO ##directives SET
-            last_modified='{datetime::now}', subject_id={!subject_id}, type={!type}, strval={!value}
+            last_modified=?, subject_id=?, type=?, strval=?
         ON DUPLICATE KEY UPDATE
-            last_modified='{datetime::now}', strval={!value}
-    `)
+            last_modified=?, strval=?
+    `
+        (datetime::now) (subject_id) (type) (value)
+        (datetime::now) (value)
+    )
 )
 
-; Returns the value of an string directive.
-(def-fn d::string:get subject_id type
-    (db::scalar `SELECT strval FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`)
+;; Returns the value of an string directive.
+;; @param {string} type
+;; @param {int} [subject_id]
+;; @returns {string}
+(def-fn dve::get-str type subject_id=0
+    (db::scalar `SELECT strval FROM ##directives WHERE subject_id=? AND type=?`
+        (subject_id) (type)
+    )
 )
 
-; Sets the value of an object directive.
-(def-fn d::object:set subject_id type value
+;; Sets the value of an object directive.
+;; @param {string} type
+;; @param {object} value
+;; @param {int} [subject_id]
+(def-fn dve::set-obj type value subject_id=0
     (db::exec `
         INSERT INTO ##directives SET
-            last_modified='{datetime::now}', subject_id={!subject_id}, type={!type}, textval={db::escape {utils::json:stringify {value}}}
+            last_modified=?, subject_id=?, type=?, textval=?
         ON DUPLICATE KEY UPDATE
-            last_modified='{datetime::now}', textval={db::escape {utils::json:stringify {value}}}
-    `)
+            last_modified=?, textval=?
+    `
+        (datetime::now) (subject_id) (type) (utils::json::stringify (value))
+        (datetime::now) (utils::json::stringify (value))
+    )
 )
 
-; Returns the value of an object directive.
-(def-fn d::object:get subject_id type
-    (utils::json:parse (db::scalar `SELECT textval FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`))
+;; Returns the value of an object directive.
+;; @param {string} type
+;; @param {int} [subject_id]
+;; @returns {object}
+(def-fn dve::get-obj type subject_id=0
+    (utils::json:parse (db::scalar `SELECT textval FROM ##directives WHERE subject_id=? AND type=?`
+        (subject_id) (type)
+    ))
 )
 
-; Returns boolean indicating if the specified directive exists.
-(def-fn d::exists subject_id type
-    (isnotnull (db::scalar `SELECT 1 FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`))
+;; Returns the subject_id given a directive type and string value.
+;; @param {string} type
+;; @param {string} value
+;; @returns {int}
+(def-fn dve::subject type value
+    (db::scalar `SELECT subject_id FROM ##directives WHERE type=? AND strval=?`
+        (type) (value)
+    )
 )
 
-; Returns the subject_id given a directive type and string value.
-(def-fn d::subject type value
-    (db::scalar `SELECT subject_id FROM ##directives WHERE type={!type} AND strval={!value}`)
-)
-
-; Deletes a directive and all of its variations (string, integer and object).
-(def-fn d::delete subject_id type
-    (db::exec `DELETE FROM ##directives WHERE subject_id={!subject_id} AND type={!type}`)
+;; Deletes a directive and all of its variations (string, integer and object).
+;; @param {string} type
+;; @param {int} [subject_id]
+(def-fn dve::delete type subject_id=0
+    (db::exec `DELETE FROM ##directives WHERE subject_id=? AND type=?`
+        (subject_id) (type)
+    )
 )
