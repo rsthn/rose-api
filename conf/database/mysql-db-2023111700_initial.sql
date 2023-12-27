@@ -104,3 +104,10 @@ CREATE TABLE sessions
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1;
 CREATE INDEX sessions_device_id ON sessions (device_id);
+
+--------------------------------------------------------------------------------
+CREATE EVENT evt_session_cleanup
+ON SCHEDULE EVERY 3600 SECOND
+STARTS CONCAT(CURDATE(), ' 00:00:00')
+DO  DELETE FROM sessions
+    WHERE TIMESTAMPDIFF(SECOND, last_activity, NOW()) >= 604800;

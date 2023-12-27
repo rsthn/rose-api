@@ -94,7 +94,7 @@
 ;; @param {int} [subject_id]
 ;; @returns {object}
 (def-fn dve::get-obj type subject_id=0
-    (utils::json:parse (db::scalar `SELECT textval FROM ##directives WHERE subject_id=? AND type=?`
+    (utils::json::parse (db::scalar `SELECT textval FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     ))
 )

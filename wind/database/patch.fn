@@ -44,7 +44,7 @@
 
     ;; Execute each query and record the completion status.
     (set failed false)
-    (for query (filter i (trim (split ";" (query))) (ne "" (i)))
+    (for query (filter i (trim (split (? (has ";;" (query)) ";;" ";") (query))) (ne "" (i)))
         (try
             (db::exec (query))
             (array::push (status_report) (str "\t✅ " (firstline (query))))
