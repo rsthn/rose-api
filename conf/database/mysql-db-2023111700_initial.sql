@@ -84,6 +84,7 @@ CREATE TABLE devices
 (
     device_id VARCHAR(48) PRIMARY KEY,
     created_at DATETIME DEFAULT NULL,
+    last_activity DATETIME DEFAULT NULL,
     ipaddr VARCHAR(128) DEFAULT NULL,
     user_id INT DEFAULT NULL,
     user_agent VARCHAR(128) DEFAULT NULL,

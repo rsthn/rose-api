@@ -16,7 +16,7 @@
     (when (isnull (formFile)) (ret))
 
     (set new_photo (image::load (formFile.path)))
-    (set old_photo (db::scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = $1` (# (id))))
+    (set old_photo (db::scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = $1` (id)))
     (if (isnotnull (old_photo))
         (file::remove (old_photo)))
 
@@ -28,7 +28,7 @@
     ))
 
     (file::write (target) (image::data (new_photo) "jpg"))
-    (db::exec `UPDATE {targetTable} SET {fieldPhoto} = $1 WHERE {fieldId} = $2` (# (target) (id) ))
+    (db::exec `UPDATE {targetTable} SET {fieldPhoto} = $1 WHERE {fieldId} = $2` (target) (id))
 )
 
 ;; Returns the URL of the picture. If the picture does not exist, returns the URL of the default image.

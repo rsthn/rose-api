@@ -51,6 +51,7 @@ CREATE TABLE devices
 (
     device_id VARCHAR(48) PRIMARY KEY
     , created_at TIMESTAMP DEFAULT NULL
+    , last_activity TIMESTAMP DEFAULT NULL
     , ipaddr VARCHAR(128) DEFAULT NULL
     , user_id INT DEFAULT NULL REFERENCES users (user_id) ON DELETE CASCADE
     , user_agent VARCHAR(128) DEFAULT NULL
