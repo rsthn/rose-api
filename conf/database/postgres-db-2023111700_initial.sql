@@ -19,15 +19,13 @@ CREATE TABLE users
     , created_at TIMESTAMP DEFAULT NULL
     , deleted_at TIMESTAMP DEFAULT NULL
     , blocked_at TIMESTAMP DEFAULT NULL
-    , name VARCHAR(96) NOT NULL
-    , phone_number VARCHAR(32) NOT NULL
-    , photo_path VARCHAR(128) DEFAULT NULL
+    , username VARCHAR(256) NOT NULL
+    , password VARCHAR(96) NOT NULL
 );
 CREATE INDEX users_created_at ON users (created_at);
 CREATE INDEX users_deleted_at ON users (deleted_at);
 CREATE INDEX users_blocked_at ON users (blocked_at);
-CREATE INDEX users_name ON users (deleted_at, name);
-CREATE INDEX users_phone_number ON users (deleted_at, phone_number);
+CREATE INDEX users_username ON users (deleted_at, username);
 
 --------------------------------------------------------------------------------
 CREATE TABLE privileges
@@ -45,17 +43,6 @@ CREATE TABLE user_privileges
     , PRIMARY KEY (user_id, privilege_id)
 );
 CREATE INDEX user_privileges_flag ON user_privileges (user_id, flag);
-
---------------------------------------------------------------------------------
-CREATE TABLE devices
-(
-    device_id VARCHAR(48) PRIMARY KEY
-    , created_at TIMESTAMP DEFAULT NULL
-    , last_activity TIMESTAMP DEFAULT NULL
-    , ipaddr VARCHAR(128) DEFAULT NULL
-    , user_id INT DEFAULT NULL REFERENCES users (user_id) ON DELETE CASCADE
-    , user_agent VARCHAR(128) DEFAULT NULL
-);
 
 --------------------------------------------------------------------------------
 CREATE TABLE tokens
@@ -81,6 +68,17 @@ CREATE TABLE token_privileges
     , PRIMARY KEY (token_id, privilege_id)
 );
 CREATE INDEX token_privileges_flag ON token_privileges (token_id, flag);
+
+--------------------------------------------------------------------------------
+CREATE TABLE devices
+(
+    device_id VARCHAR(48) PRIMARY KEY
+    , created_at TIMESTAMP DEFAULT NULL
+    , last_activity TIMESTAMP DEFAULT NULL
+    , ipaddr VARCHAR(128) DEFAULT NULL
+    , user_id INT DEFAULT NULL REFERENCES users (user_id) ON DELETE CASCADE
+    , user_agent VARCHAR(128) DEFAULT NULL
+);
 
 --------------------------------------------------------------------------------
 CREATE TABLE sessions
