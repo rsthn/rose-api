@@ -3,7 +3,7 @@
 ;; @param {int} digits
 ;; @returns {string}
 ;; 
-(def-fn dve::rand digits
+(def-fn dve:rand digits
     (set code "")
     (while (lt (len (code)) (digits))
         (append code (mod (utils::rand) 10)))
@@ -15,7 +15,7 @@
 ;; @param {string} type
 ;; @param {int} [subject_id]
 ;; @returns {bool}
-(def-fn dve::exists type subject_id=0
+(def-fn dve:exists type subject_id=0
     (isnotnull (db::scalar `SELECT 1 FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     ))
@@ -25,7 +25,7 @@
 ;; @param {string} type
 ;; @param {int} value
 ;; @param {int} [subject_id]
-(def-fn dve::set-int type value subject_id=0
+(def-fn dve:set-int type value subject_id=0
     (db::exec `
         INSERT INTO ##directives SET
             last_modified=?, subject_id=?, type=?, intval=?
@@ -41,7 +41,7 @@
 ;; @param {string} type
 ;; @param {int} [subject_id]
 ;; @returns {int}
-(def-fn dve::get-int type subject_id=0
+(def-fn dve:get-int type subject_id=0
     (db::scalar `SELECT intval FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     )
@@ -51,7 +51,7 @@
 ;; @param {string} type
 ;; @param {string} value
 ;; @param {int} [subject_id]
-(def-fn dve::set-str type value subject_id=0
+(def-fn dve:set-str type value subject_id=0
     (db::exec `
         INSERT INTO ##directives SET
             last_modified=?, subject_id=?, type=?, strval=?
@@ -67,7 +67,7 @@
 ;; @param {string} type
 ;; @param {int} [subject_id]
 ;; @returns {string}
-(def-fn dve::get-str type subject_id=0
+(def-fn dve:get-str type subject_id=0
     (db::scalar `SELECT strval FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     )
@@ -77,15 +77,15 @@
 ;; @param {string} type
 ;; @param {object} value
 ;; @param {int} [subject_id]
-(def-fn dve::set-obj type value subject_id=0
+(def-fn dve:set-obj type value subject_id=0
     (db::exec `
         INSERT INTO ##directives SET
             last_modified=?, subject_id=?, type=?, textval=?
         ON DUPLICATE KEY UPDATE
             last_modified=?, textval=?
     `
-        (datetime::now) (subject_id) (type) (utils::json::stringify (value))
-        (datetime::now) (utils::json::stringify (value))
+        (datetime::now) (subject_id) (type) (json:stringify (value))
+        (datetime::now) (json:stringify (value))
     )
 )
 
@@ -93,8 +93,8 @@
 ;; @param {string} type
 ;; @param {int} [subject_id]
 ;; @returns {object}
-(def-fn dve::get-obj type subject_id=0
-    (utils::json::parse (db::scalar `SELECT textval FROM ##directives WHERE subject_id=? AND type=?`
+(def-fn dve:get-obj type subject_id=0
+    (json:parse (db::scalar `SELECT textval FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     ))
 )
@@ -103,7 +103,7 @@
 ;; @param {string} type
 ;; @param {string} value
 ;; @returns {int}
-(def-fn dve::subject type value
+(def-fn dve:subject type value
     (db::scalar `SELECT subject_id FROM ##directives WHERE type=? AND strval=?`
         (type) (value)
     )
@@ -112,7 +112,7 @@
 ;; Deletes a directive and all of its variations (string, integer and object).
 ;; @param {string} type
 ;; @param {int} [subject_id]
-(def-fn dve::delete type subject_id=0
+(def-fn dve:delete type subject_id=0
     (db::exec `DELETE FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     )

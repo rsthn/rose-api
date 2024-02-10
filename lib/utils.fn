@@ -11,7 +11,7 @@
 ;; @param {Number} width
 ;; @param {Number} [height]
 ;;
-(def-fn utils::update-photo formFile fieldId id targetTable fieldPhoto width height=0
+(def-fn utils:update-photo formFile fieldId id targetTable fieldPhoto width height=0
 
     (when (isnull (formFile)) (ret))
 
@@ -36,6 +36,6 @@
 ;; @param {String} [defaultPath]
 ;; @returns {String}
 ;;
-(def-fn utils::photo-url photoPath defaultPath="def-storage/blank.png"
+(def-fn utils:photo-url photoPath defaultPath="def-storage/blank.png"
     (str (gateway.ep) "/" (?? (photoPath) (defaultPath)))
 )

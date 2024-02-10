@@ -62,12 +62,12 @@
     (throw "@messages.signature_expired"))
 
 ;; constructs the message to be signed and check if the signature is valid
-(set message (utils::json::stringify (&
+(set message (json:stringify (&
     timestamp (input.timestamp)
     device_token (input.device_token)
 )))
 
-(set signature (utils::hmac "SHA512" (device.secret) (message)))
+(set signature (crypto:hmac "SHA512" (device.secret) (message)))
 (when-not (eq (signature) (input.signature))
     (throw "@messages.invalid_signature"))
 
@@ -76,9 +76,12 @@
 (when (session_id) (session::id (session_id)))
 
 ;; authenticate the user and issue a new device token
+(db::exec `UPDATE devices SET last_activity=$1 WHERE device_id=$2` (datetime::now) (device.device_id))
 (sentinel::login-user (device.user_id))
-(common::reload-user-details)
+(set session.device_id (device.device_id))
+(common:reload-user-details)
 
+;; refresh the device token
 (set device_token (utils::randstr-base64 256))
 (db::exec `UPDATE devices SET token=$1 WHERE device_id=$2` (device_token) (device.device_id))
 

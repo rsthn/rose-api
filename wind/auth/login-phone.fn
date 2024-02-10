@@ -10,7 +10,7 @@
 ;;    user_agent:
 ;;      type: string
 ;;      description: User agent of the device making the request.
-;;    username:
+;;    phone_country_code:
 ;;      type: string
 ;;      format: +111
 ;;      description: Phone country code (3 digits with a plus sign).
@@ -54,6 +54,12 @@
         set (substr 0 256 ($))
     )
 
+    (shield::field device_token
+        required false
+        max-length 512
+        pattern base64
+    )
+
     (shield::field phone_country_code
         required true
         pattern phone_country_code
@@ -74,9 +80,9 @@
 
 (set phone_number "(input.phone_country_code)(input.phone_number)")
 (when (not (input.one_time_code))
-    (set session.one_time_code (dx::rand (config.Sentinel.otp_size)))
+    (set session.one_time_code (dve:rand (config.Sentinel.otp_size)))
     (trace "[OTP] [(datetime::now)] phone=(phone_number), one_time_code=(session.one_time_code)")
-    (twilio::send "(phone_number)" "🚗 (session.one_time_code) es tu código de verificación de Carrito HN")
+    (twilio::send "(phone_number)" "Your OTP is: (session.one_time_code)")
     (stop (&
         action_required true
     ))
@@ -94,23 +100,38 @@
     (set user (db::row `INSERT INTO users (created_at, phone_number, name) VALUES ($1, $2, $3) RETURNING user_id` (datetime::now) (phone_number) ""))
 )
 
-;; create a new device, and issue the respective device token and secret
-(set device_token (utils::randstr-base64 256))
-(set device_secret (utils::randstr-base64 256))
+;; check if the specified device_token is valid for the user
+(when (input.device_token)
+    (set device_id (db::scalar `SELECT device_id FROM devices WHERE token=$1 AND user_id=$2` (input.device_token) (user.user_id)))
+    (when-not (device_id)
+        (set input.device_token null))
+)
 
-(set device_id (db::insert "devices" (&
-    created_at (datetime::now)
-    ipaddr (gateway.remoteAddress)
-    user_id (user.user_id)
-    user_agent (input.user_agent)
-    token (device_token)
-    secret (device_secret)
-)))
+;; create a new device, and issue the respective device token and secret
+(if (not (input.device_token))
+    (set device_token (utils::randstr-base64 256))
+    (set device_secret (utils::randstr-base64 256))
+
+    (set device_id (db::insert "devices" (&
+        created_at (datetime::now)
+        ipaddr (gateway.remoteAddress)
+        user_id (user.user_id)
+        user_agent (input.user_agent)
+        token (device_token)
+        secret (device_secret)
+    )))
+
+else
+    (set device_secret (utils::randstr-base64 256))
+    (set device_token (input.device_token))
+    (db::exec `UPDATE devices SET secret=$1 WHERE device_id=$2` (device_secret) (device_id))
+)
 
 ;; authenticate the user and record the device_id in the session
+(db::exec `UPDATE devices SET last_activity=$1 WHERE device_id=$2` (datetime::now) (device_id))
 (sentinel::login-user (user.user_id))
 (set session.device_id (device_id))
-(common::reload-user-details)
+(common:reload-user-details)
 
 (stop (&
     action_required false
