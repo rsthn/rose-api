@@ -20,14 +20,14 @@
     (if (isnotnull (old_photo))
         (file::remove (old_photo)))
 
-    (set target "storage/(replace '#' '' (targetTable))/(id)_(utils::rand).jpg")
+    (set target "storage/(replace '#' '' (targetTable))/(id)_(utils::rand).png")
 
     (set new_photo (? (and (width) (height))
         (image::smartcut (new_photo) (width) (height) 0 0 true)
         (image::fit (new_photo) (width) (height) true)
     ))
 
-    (file::write (target) (image::data (new_photo) "jpg"))
+    (file::write (target) (image::data (new_photo) "png"))
     (db::exec `UPDATE {targetTable} SET {fieldPhoto} = $1 WHERE {fieldId} = $2` (target) (id))
 )
 

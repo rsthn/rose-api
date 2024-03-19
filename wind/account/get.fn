@@ -24,8 +24,15 @@
 ;;      description: User account status.
 ;;
 
+(import "lib/common")
+(import "lib/utils")
+
 (sentinel::auth-required)
+(common::reload-user-details)
 
 (map::assign
     (map-get "user_id" "name" "email" "status" (session.user))
+    (&
+        photo_url (utils::photo-url (session.user.photo_path))
+    )
 )
