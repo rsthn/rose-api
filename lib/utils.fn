@@ -1,5 +1,23 @@
 
-;; Updates the photo path in a database table and removes the old photo if exists. The image will
+;;
+;; Removes a photo from a record in the database and sets its value to NULL.
+;;
+;; @param {String} fieldId
+;; @param {String} id
+;; @param {String} targetTable
+;; @param {String} fieldPhoto
+;;
+(def-fn utils:remove-photo fieldId id targetTable fieldPhoto
+
+    (set old_photo (db::scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = $1` (id)))
+    (if (isnotnull (old_photo))
+        (file::remove (old_photo)))
+
+    (db::exec `UPDATE {targetTable} SET {fieldPhoto} = NULL WHERE {fieldId} = $1` (id))
+)
+
+;;
+;; Updates the photo path in a record in the database and removes the old photo if exists. The image will
 ;; be resized to the specified width and height (smartcut). Or if only one or the other of width and
 ;; height is specified, the image will be resized to fit the specified width or height, respectively.
 ;;
@@ -31,7 +49,9 @@
     (db::exec `UPDATE {targetTable} SET {fieldPhoto} = $1 WHERE {fieldId} = $2` (target) (id))
 )
 
+;;
 ;; Returns the URL of the picture. If the picture does not exist, returns the URL of the default image.
+;;
 ;; @param {String} photoPath
 ;; @param {String} [defaultPath]
 ;; @returns {String}

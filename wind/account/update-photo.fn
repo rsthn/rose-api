@@ -12,5 +12,5 @@
     )
 )
 
-(utils::update-photo (form.photo) "user_id" (session.user.user_id) "users" "photo_path" 512)
+(utils:update-photo (form.photo) "user_id" (session.user.user_id) "users" "photo_path" 512)
 (call "account.get")

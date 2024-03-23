@@ -20,6 +20,6 @@
 
 (db::update "##users" `user_id={session.user.user_id}` (form))
 
-;(utils::updatePicture (gateway.request) "photo" (session.user.user_id) "##users" "user_id" "photo" 512 512)
+;(utils:updatePicture (gateway.request) "photo" (session.user.user_id) "##users" "user_id" "photo" 512 512)
 (common:reload-user-details)
 (&)

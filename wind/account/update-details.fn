@@ -6,24 +6,29 @@
 (shield::validate input
 
     (shield::field name
-        presence false
-        required true/empty
+        presence true|ignore
+        required true|empty
         pattern name
     )
 
     (shield::field email
-        presence false
-        required true/empty
+        presence true|ignore
+        required true|empty
         pattern email
+    )
+
+    (shield::field phone
+        presence true|ignore
+        required true|empty
+        pattern phone
     )
 )
 
 (db::update "##users" "user_id=(session.user.user_id)" (input))
-
 (common:reload-user-details)
 
 (&
     response 200
-    message (s.messages.msg_details_saved)
+    message (s "@messages.msg_details_saved")
     data (icall "account.get")
 )
