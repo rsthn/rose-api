@@ -1,0 +1,5 @@
+
+(&
+    server_time (datetime:now)
+    database_time (try (db:scalar `SELECT NOW()`) catch "Not available")
+)

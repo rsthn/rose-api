@@ -1,5 +1,0 @@
-
-(&
-    serverTime (datetime::now)
-    databaseTime (db::scalar `SELECT NOW()`)
-)

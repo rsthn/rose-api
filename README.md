@@ -17,7 +17,8 @@ Let's assume you installed the project in a folder named `test`, open your brows
 ```json
 {
 	"response": 200,
-	"message": "@messages.service_operational"
+	"framework": "rsthn/rose-core",
+    "version": "5.0.0"
 }
 ```
 
@@ -26,7 +27,8 @@ There is also another API function named `now`, if you navigate to `http://local
 ```json
 {
 	"response": 200,
-	"message": "Current date and time is: 2021-02-03 08:39:29"
+	"server_time": "2024-04-08 07:20:12",
+    "database_time": "2024-04-08 07:20:12"
 }
 ```
 
@@ -47,7 +49,7 @@ And with that, your pretty URLs will be supported.
 
 # Configuration
 
-Ensure you have a `rose-env` file on the root of this project with the name of the appropriate configuration environment to use (i.e. `dev`, `prod`, etc). Rose will load the `dev.conf`, `prod.conf` or whichever file you specify (along with `system.conf` by default) from the `rcore` folder. Additionally, edit the `rcore/*.conf` files to reflect the configuration of your system.
+Ensure you have a `rose-env` file on the root of this project with the name of the appropriate configuration environment to use (i.e. `dev`, `prod`, etc). Rose will load the `dev.conf`, `prod.conf` or whichever file you specify (along with `system.conf` by default) from the `conf` folder. Edit the conf files to reflect the configuration of your system.
 
 _Note that the `rose-env` file should not be commited to ensure it is never overwritten in destination servers._
 
@@ -57,9 +59,9 @@ _Note that the `rose-env` file should not be commited to ensure it is never over
 
 The service provided by this project is compliant with Wind, more information about it can be found in the [Wind](https://github.com/rsthn/rose-core/blob/master/Wind.md) API behavior documentation.
 
-- The root folder for all API functions (`.fn` files) is `rcore/wind` because Wind is the Rose service that will take care of the API interaction.
+- The root folder for all API functions (`.fn` files) is `fn` because Wind is the Rose service that will take care of the API interaction.
 - The `f` request parameter indicates the name of the function to execute, this parameter can have only the characters `[#A-Za-z0-9.,_-]`, any other character will be removed.
-- The dot `.` character is used as path separator, therefore invoking `sys.users.add` will cause Wind to load the `rcore/wind/sys/users/add.fn` file.
+- The dot `.` character is used as path separator, therefore invoking `sys.users.add` will cause Wind to load the `fn/sys/users/add.fn` file.
 
 <br/>
 
