@@ -2,10 +2,10 @@
 (import "lib/common")
 (import "lib/utils")
 
-(sentinel::auth-required)
+(sentinel:auth-required)
 
-(shield::validate form
-    (shield::field photo
+(shield:validate form
+    (shield:field photo
         required true
         file-type:image png,jpg,jpeg
         max-file-size:16m 16777216

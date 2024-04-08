@@ -1,8 +1,8 @@
 
-(sentinel::auth-required)
+(sentinel:auth-required)
 
 (when (session.device_id)
-    (db::exec `UPDATE devices SET last_activity=$1 WHERE device_id=$2` (datetime::now) (session.device_id)))
+    (db:exec `UPDATE devices SET last_activity=$1 WHERE device_id=$2` (datetime:now) (session.device_id)))
 
-(session::destroy)
+(session:destroy)
 (&)

@@ -35,17 +35,17 @@
 
 (import "lib/common")
 
-(shield::validate input
-    (shield::field timestamp
+(shield:validate input
+    (shield:field timestamp
         required true
         pattern timestamp
     )
-    (shield::field device_token
+    (shield:field device_token
         required true
         max-length 512
         pattern base64
     )
-    (shield::field signature
+    (shield:field signature
         required true
         max-length 128
         pattern base64
@@ -53,16 +53,16 @@
 )
 
 ;; verify the device exists and get its info
-(set device (db::row `SELECT device_id, user_id, secret FROM devices WHERE token=$1` (input.device_token)))
+(set device (db:row `SELECT device_id, user_id, secret FROM devices WHERE token=$1` (input.device_token)))
 (when-not (device)
     (throw "@messages.invalid_device_token"))
 
 ;; ensure the signature has not expired (15 seconds from time of signing)
-(when (gt (datetime::diff (datetime::now) (datetime::parse (input.timestamp) "UTC" "UTC")) 15)
+(when (gt (datetime:diff (datetime:now) (datetime:parse (input.timestamp) "UTC" "UTC")) 15)
     (throw "@messages.signature_expired"))
 
 ;; constructs the message to be signed and check if the signature is valid
-(set message (json:stringify (&
+(set message (json:str (&
     timestamp (input.timestamp)
     device_token (input.device_token)
 )))
@@ -72,18 +72,18 @@
     (throw "@messages.invalid_signature"))
 
 ;; attempt to reuse a session for the same device if it exists
-(set session_id (db::scalar `SELECT session_id FROM sessions WHERE user_id=$1 AND device_id=$2` (device.user_id) (device.device_id)))
-(when (session_id) (session::id (session_id)))
+(set session_id (db:scalar `SELECT session_id FROM sessions WHERE user_id=$1 AND device_id=$2` (device.user_id) (device.device_id)))
+(when (session_id) (session:id (session_id)))
 
 ;; authenticate the user and issue a new device token
-(db::exec `UPDATE devices SET last_activity=$1 WHERE device_id=$2` (datetime::now) (device.device_id))
-(sentinel::login-user (device.user_id))
+(db:exec `UPDATE devices SET last_activity=$1 WHERE device_id=$2` (datetime:now) (device.device_id))
+(sentinel:login-user (device.user_id))
 (set session.device_id (device.device_id))
 (common:reload-user-details)
 
 ;; refresh the device token
-(set device_token (utils::randstr-base64 256))
-(db::exec `UPDATE devices SET token=$1 WHERE device_id=$2` (device_token) (device.device_id))
+(set device_token (base64:encode (utils:random-bytes 256)))
+(db:exec `UPDATE devices SET token=$1 WHERE device_id=$2` (device_token) (device.device_id))
 
 (stop (&
     device_token (device_token)

@@ -45,32 +45,32 @@
 (import "lib/directives")
 (import "lib/common")
 
-(shield::validate input
+(shield:validate input
 
-    (shield::field user_agent
+    (shield:field user_agent
         required true
         pattern text
         set (substr 0 256 ($))
     )
 
-    (shield::field username
+    (shield:field username
         required true
         pattern identifier
     )
 
-    (shield::field password
+    (shield:field password
         required true
         min-length 8
         max-length 256
     )
 
-    (shield::field code
+    (shield:field code
         required false
         pattern integer
     )
 )
 
-(sentinel::login (input.username) (input.password))
+(sentinel:login (input.username) (input.password))
 
 (stop (&
     action_required false

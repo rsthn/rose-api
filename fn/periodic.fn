@@ -4,33 +4,33 @@
 (if (ne (config.periodic.enabled) "true")
 	(throw "not enabled"))
 
-(if (not (path::exists "conf/periodic"))
+(if (not (path:exists "conf/periodic"))
 	(throw "folder `conf/periodic` does not exist"))
 
-(if (dve::exists "periodic/last")
-	(set delta (datetime::diff (datetime::now) (dve::get-str "periodic/last")))
+(if (dve:exists "periodic/last")
+	(set delta (datetime:diff (datetime:now) (dve:get-str "periodic/last")))
  	(if (lt (delta) (config.periodic.interval))
 		(throw "interval not reached \((- (config.periodic.interval) (delta)) seconds remaining\)"))
 )
 
-(if (eq (dve::get-int "periodic/last") 1)
+(if (eq (dve:get-int "periodic/last") 1)
 	(throw "already running"))
 
-(dve::set-int "periodic/last" 1)
-(dve::set-str "periodic/last" (datetime::now))
+(dve:set-int "periodic/last" 1)
+(dve:set-str "periodic/last" (datetime:now))
 
-(gateway::persistent)
+(gateway:persistent)
 
-(for source (array::sort-asc (map file (dir::files "conf/periodic" "/^[0-9]+-.+\.fn$/") (file.path)))
+(for source (array:sort-asc (map file (dir:files "conf/periodic" "/^[0-9]+-.+\.fn$/") (file.path)))
 	(try
-		(eval (file::read (source)))
+		(eval (file:read (source)))
 	catch
-        (echo "[ERROR] [(datetime::now)] (source): (err)")
-		(trace-alt "periodic" "[ERROR] [(datetime::now)] (source): (err)")
+        (echo "[ERROR] [(datetime:now)] (source): (err)")
+		(trace-alt "periodic" "[ERROR] [(datetime:now)] (source): (err)")
 	)
 )
 
-(dve::set-int "periodic/count" (+ 1 (dve::get-int "periodic/count")))
-(dve::set-int "periodic/last" 0)
+(dve:set-int "periodic/count" (+ 1 (dve:get-int "periodic/count")))
+(dve:set-int "periodic/last" 0)
 
 (&)

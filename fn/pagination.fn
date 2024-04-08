@@ -1,11 +1,11 @@
 
-(shield::validate
-    (shield::field offset
+(shield:validate
+    (shield:field offset
         default-stop 0
         pattern integer
     )
 
-    (shield::field count
+    (shield:field count
         default-stop 25
         pattern integer
         min-value 1

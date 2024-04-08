@@ -1,24 +1,24 @@
 
-(sentinel::auth-required)
+(sentinel:auth-required)
 
 (import "lib/utils")
 (import "lib/common")
 
-(shield::validate form
+(shield:validate form
 
-	(shield::field name
+	(shield:field name
 		required true
 		pattern name
 		min-length 4
 	)
 
-	(shield::field email
+	(shield:field email
 		required false
 		pattern email
 	)
 )
 
-(db::update "##users" `user_id={session.user.user_id}` (form))
+(db:update "##users" `user_id={session.user.user_id}` (form))
 
 ;(utils:updatePicture (gateway.request) "photo" (session.user.user_id) "##users" "user_id" "photo" 512 512)
 (common:reload-user-details)

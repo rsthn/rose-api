@@ -46,43 +46,43 @@
 (import "lib/directives")
 (import "lib/common")
 
-(shield::validate input
+(shield:validate input
 
-    (shield::field user_agent
+    (shield:field user_agent
         required true
         pattern text
         set (substr 0 256 ($))
     )
 
-    (shield::field device_token
+    (shield:field device_token
         required false
         max-length 512
         pattern base64
     )
 
-    (shield::field phone_country_code
+    (shield:field phone_country_code
         required true
         pattern phone_country_code
     )
 
-    (shield::field phone_number
+    (shield:field phone_number
         required:phone_number true
         pattern phone_number
     )
 
-    (shield::field one_time_code
+    (shield:field one_time_code
         required false
         pattern one_time_code
     )
 )
 
-(session::open true)
+(session:open true)
 
 (set phone_number "(input.phone_country_code)(input.phone_number)")
 (when (not (input.one_time_code))
     (set session.one_time_code (dve:rand (config.Sentinel.otp_size)))
-    (trace "[OTP] [(datetime::now)] phone=(phone_number), one_time_code=(session.one_time_code)")
-    (twilio::send "(phone_number)" "Your OTP is: (session.one_time_code)")
+    (trace "[OTP] [(datetime:now)] phone=(phone_number), one_time_code=(session.one_time_code)")
+    (twilio:send "(phone_number)" "Your OTP is: (session.one_time_code)")
     (stop (&
         action_required true
     ))
@@ -95,25 +95,25 @@
 (set session.one_time_code null)
 
 ;; load the user exists or create a new user if it doesn't exist
-(set user (db::row "SELECT * FROM users WHERE phone_number=$1 AND deleted_at IS NULL" (phone_number) ))
+(set user (db:row "SELECT * FROM users WHERE phone_number=$1 AND deleted_at IS NULL" (phone_number) ))
 (when-not (user)
-    (set user (db::row `INSERT INTO users (created_at, phone_number, name) VALUES ($1, $2, $3) RETURNING user_id` (datetime::now) (phone_number) ""))
+    (set user (db:row `INSERT INTO users (created_at, phone_number, name) VALUES ($1, $2, $3) RETURNING user_id` (datetime:now) (phone_number) ""))
 )
 
 ;; check if the specified device_token is valid for the user
 (when (input.device_token)
-    (set device_id (db::scalar `SELECT device_id FROM devices WHERE token=$1 AND user_id=$2` (input.device_token) (user.user_id)))
+    (set device_id (db:scalar `SELECT device_id FROM devices WHERE token=$1 AND user_id=$2` (input.device_token) (user.user_id)))
     (when-not (device_id)
         (set input.device_token null))
 )
 
 ;; create a new device, and issue the respective device token and secret
 (if (not (input.device_token))
-    (set device_token (utils::randstr-base64 256))
-    (set device_secret (utils::randstr-base64 256))
+    (set device_token (base64:encode (utils:random-bytes 256)))
+    (set device_secret (base64:encode (utils:random-bytes 256)))
 
-    (set device_id (db::insert "devices" (&
-        created_at (datetime::now)
+    (set device_id (db:insert "devices" (&
+        created_at (datetime:now)
         ipaddr (gateway.remoteAddress)
         user_id (user.user_id)
         user_agent (input.user_agent)
@@ -122,14 +122,14 @@
     )))
 
 else
-    (set device_secret (utils::randstr-base64 256))
+    (set device_secret (base64:encode (utils:random-bytes 256)))
     (set device_token (input.device_token))
-    (db::exec `UPDATE devices SET secret=$1 WHERE device_id=$2` (device_secret) (device_id))
+    (db:exec `UPDATE devices SET secret=$1 WHERE device_id=$2` (device_secret) (device_id))
 )
 
 ;; authenticate the user and record the device_id in the session
-(db::exec `UPDATE devices SET last_activity=$1 WHERE device_id=$2` (datetime::now) (device_id))
-(sentinel::login-user (user.user_id))
+(db:exec `UPDATE devices SET last_activity=$1 WHERE device_id=$2` (datetime:now) (device_id))
+(sentinel:login-user (user.user_id))
 (set session.device_id (device_id))
 (common:reload-user-details)
 
