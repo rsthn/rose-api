@@ -29,6 +29,6 @@
 
 (&
     response 200
-    message (s "@messages.msg_details_saved")
+    message (strings:get "@messages.msg_details_saved")
     data (icall "account.get")
 )

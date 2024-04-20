@@ -1,7 +1,7 @@
 
 (import "lib/directives")
 
-(if (ne (config.periodic.enabled) "true")
+(if (ne? (config.periodic.enabled) "true")
 	(throw "not enabled"))
 
 (if (not (path:exists "conf/periodic"))
@@ -9,11 +9,11 @@
 
 (if (dve:exists "periodic/last")
 	(set delta (datetime:diff (datetime:now) (dve:get-str "periodic/last")))
- 	(if (lt (delta) (config.periodic.interval))
+ 	(if (lt? (delta) (config.periodic.interval))
 		(throw "interval not reached \((- (config.periodic.interval) (delta)) seconds remaining\)"))
 )
 
-(if (eq (dve:get-int "periodic/last") 1)
+(if (eq? (dve:get-int "periodic/last") 1)
 	(throw "already running"))
 
 (dve:set-int "periodic/last" 1)

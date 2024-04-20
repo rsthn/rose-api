@@ -3,7 +3,7 @@
     (shield:field token
         required true
         pattern identifier
-        check:invalid-token (eq (config.Database.token) ($))
+        check:invalid-token (eq? (config.Database.token) ($))
     )
 )
 
@@ -16,7 +16,7 @@
 
 ;; Load list of patches with prefix "db-".
 (set patches (array:sort 
-    (map (filter (dir:files "conf/database") (and (ends-with ".sql" (i.name)) (starts-with "db-" (i.name))))
+    (map (filter (dir:files "conf/database") (and (ends-with? ".sql" (i.name)) (starts-with? "db-" (i.name))))
         (& name (i.name) path (i.path) version (substr 3 (array:first (split "_" (i.name)))) ))
     (str:compare (a.version) (b.version))
 ))
@@ -26,12 +26,12 @@
     (array:first (split "\n" (value)))
 )
 
-(set status_report (#))
+(set status_report [])
 (set failed false)
 
 (for patch (patches)
 
-    (when (and (isnotnull (conf.Database.version)) (le (str:compare (patch.version) (conf.Database.version)) 0))
+    (when (and (not-null? (conf.Database.version)) (le? (str:compare (patch.version) (conf.Database.version)) 0))
         (array:push (status_report) "🔥 Skipping patch <b>(patch.name)</b>")
         (continue)
     )
@@ -44,12 +44,12 @@
 
     ;; Execute each query and record the completion status.
     (set failed false)
-    (for query (filter i (trim (split (? (has ";;" (query)) ";;" ";") (query))) (ne "" (i)))
+    (for query (filter i (map k (split (? (in? (query) ";;") ";;" ";") (query)) (trim (k))) (ne? "" (i)))
         (try
             (db:exec (query))
-            (array:push (status_report) (str "\t✅ " (firstline (query))))
+            (array:push (status_report) (concat "\t✅ " (firstline (query))))
         catch
-            (array:push (status_report) (str "\t⛔ " (firstline (query)) "\n\t💥 " (replace "\n" "\n\t\t" (err))))
+            (array:push (status_report) (concat "\t⛔ " (firstline (query)) "\n\t💥 " (str:replace "\n" "\n\t\t" (err))))
             (set failed true)
             (break)
         )
@@ -66,8 +66,8 @@
 (when-not (failed)
     (array:push (status_report) "🎉 Database is up to date!"))
 
-(content-type "text/html")
-(replace "\n" "<br/>"
-    (replace "\t" "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+(gateway:header "Content-Type: text/html")
+(str:replace "\n" "<br/>"
+    (str:replace "\t" "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
         (join "\n" (status_report)))
 )

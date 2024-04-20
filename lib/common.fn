@@ -1,7 +1,7 @@
 
 ;; Loads other user details in the session that are not loaded by default from the users table.
 (def-fn common:reload-user-details
-    (session::open)
-    (sentinel::reload)
+    (session:open)
+    (sentinel:reload)
     ;(set session.user.example_field ...)
 )

@@ -58,7 +58,7 @@
     (throw "@messages.invalid_device_token"))
 
 ;; ensure the signature has not expired (15 seconds from time of signing)
-(when (gt (datetime:diff (datetime:now) (datetime:parse (input.timestamp) "UTC" "UTC")) 15)
+(when (gt? (datetime:diff (datetime:now) (datetime:parse (input.timestamp) "UTC" "UTC")) 15)
     (throw "@messages.signature_expired"))
 
 ;; constructs the message to be signed and check if the signature is valid
@@ -68,7 +68,7 @@
 )))
 
 (set signature (crypto:hmac "SHA512" (device.secret) (message)))
-(when-not (eq (signature) (input.signature))
+(when-not (eq? (signature) (input.signature))
     (throw "@messages.invalid_signature"))
 
 ;; attempt to reuse a session for the same device if it exists
@@ -82,9 +82,9 @@
 (common:reload-user-details)
 
 ;; refresh the device token
-(set device_token (base64:encode (utils:random-bytes 256)))
+(set device_token (base64:encode (crypto:random-bytes 256)))
 (db:exec `UPDATE devices SET token=$1 WHERE device_id=$2` (device_token) (device.device_id))
 
-(stop (&
+(&
     device_token (device_token)
-))
+)

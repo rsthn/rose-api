@@ -23,5 +23,5 @@
 
 (&
 	data (icall "account.get")
-	message (s "@messages.msg_details_saved")
+	message (strings:get "@messages.msg_details_saved")
 )

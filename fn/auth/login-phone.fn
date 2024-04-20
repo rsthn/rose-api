@@ -89,7 +89,7 @@
 )
 
 ;; verify the one-time-code is correct and clear it from the session if it is valid
-(when-not (eq (input.one_time_code) (session.one_time_code))
+(when-not (eq? (input.one_time_code) (session.one_time_code))
     (throw "@messages.invalid_one_time_code"))
 
 (set session.one_time_code null)
@@ -109,8 +109,8 @@
 
 ;; create a new device, and issue the respective device token and secret
 (if (not (input.device_token))
-    (set device_token (base64:encode (utils:random-bytes 256)))
-    (set device_secret (base64:encode (utils:random-bytes 256)))
+    (set device_token (base64:encode (crypto:random-bytes 256)))
+    (set device_secret (base64:encode (crypto:random-bytes 256)))
 
     (set device_id (db:insert "devices" (&
         created_at (datetime:now)
@@ -122,7 +122,7 @@
     )))
 
 else
-    (set device_secret (base64:encode (utils:random-bytes 256)))
+    (set device_secret (base64:encode (crypto:random-bytes 256)))
     (set device_token (input.device_token))
     (db:exec `UPDATE devices SET secret=$1 WHERE device_id=$2` (device_secret) (device_id))
 )
@@ -133,8 +133,8 @@ else
 (set session.device_id (device_id))
 (common:reload-user-details)
 
-(stop (&
+(&
     action_required false
     device_token (device_token)
     device_secret (device_secret)
-))
+)

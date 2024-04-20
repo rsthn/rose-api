@@ -72,6 +72,6 @@
 
 (sentinel:login (input.username) (input.password))
 
-(stop (&
+(&
     action_required false
-))
+)
