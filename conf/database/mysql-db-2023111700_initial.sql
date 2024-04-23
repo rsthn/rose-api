@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 CREATE TABLE directives
 (
-    subject_id INT NOT NULL DEFAULT 0,
+    subject_id VARCHAR(128) NOT NULL DEFAULT '0',
     type VARCHAR(128) NOT NULL,
     last_modified DATETIME DEFAULT NULL,
     strval VARCHAR(8192) DEFAULT NULL,

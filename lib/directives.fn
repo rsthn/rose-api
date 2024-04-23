@@ -13,9 +13,9 @@
 
 ;; Returns boolean indicating if the specified directive exists.
 ;; @param {string} type
-;; @param {int} [subject_id]
+;; @param {string} [subject_id]
 ;; @returns {bool}
-(def-fn dve:exists type subject_id=0
+(def-fn dve:exists type subject_id="0"
     (not-null? (db:scalar `SELECT 1 FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     ))
@@ -24,8 +24,8 @@
 ;; Sets the value of an integer directive.
 ;; @param {string} type
 ;; @param {int} value
-;; @param {int} [subject_id]
-(def-fn dve:set-int type value subject_id=0
+;; @param {string} [subject_id]
+(def-fn dve:set-int type value subject_id="0"
     (db:exec `
         INSERT INTO ##directives SET
             last_modified=?, subject_id=?, type=?, intval=?
@@ -39,9 +39,9 @@
 
 ;; Returns the value of an integer directive.
 ;; @param {string} type
-;; @param {int} [subject_id]
+;; @param {string} [subject_id]
 ;; @returns {int}
-(def-fn dve:get-int type subject_id=0
+(def-fn dve:get-int type subject_id="0"
     (db:scalar `SELECT intval FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     )
@@ -50,8 +50,8 @@
 ;; Sets the value of an string directive.
 ;; @param {string} type
 ;; @param {string} value
-;; @param {int} [subject_id]
-(def-fn dve:set-str type value subject_id=0
+;; @param {string} [subject_id]
+(def-fn dve:set-str type value subject_id="0"
     (db:exec `
         INSERT INTO ##directives SET
             last_modified=?, subject_id=?, type=?, strval=?
@@ -65,9 +65,9 @@
 
 ;; Returns the value of an string directive.
 ;; @param {string} type
-;; @param {int} [subject_id]
+;; @param {string} [subject_id]
 ;; @returns {string}
-(def-fn dve:get-str type subject_id=0
+(def-fn dve:get-str type subject_id="0"
     (db:scalar `SELECT strval FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     )
@@ -76,8 +76,8 @@
 ;; Sets the value of an object directive.
 ;; @param {string} type
 ;; @param {object} value
-;; @param {int} [subject_id]
-(def-fn dve:set-obj type value subject_id=0
+;; @param {string} [subject_id]
+(def-fn dve:set-obj type value subject_id="0"
     (db:exec `
         INSERT INTO ##directives SET
             last_modified=?, subject_id=?, type=?, textval=?
@@ -91,9 +91,9 @@
 
 ;; Returns the value of an object directive.
 ;; @param {string} type
-;; @param {int} [subject_id]
+;; @param {string} [subject_id]
 ;; @returns {object}
-(def-fn dve:get-obj type subject_id=0
+(def-fn dve:get-obj type subject_id="0"
     (json:parse (db:scalar `SELECT textval FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     ))
@@ -102,17 +102,26 @@
 ;; Returns the subject_id given a directive type and string value.
 ;; @param {string} type
 ;; @param {string} value
-;; @returns {int}
+;; @returns {string}
 (def-fn dve:subject type value
     (db:scalar `SELECT subject_id FROM ##directives WHERE type=? AND strval=?`
         (type) (value)
     )
 )
 
+;; Returns all subject ids matching the specified directive type.
+;; @param {string} type
+;; @returns {string[]}
+(def-fn dve:get-all type
+    (db:scalars `SELECT subject_id FROM ##directives WHERE type=?`
+        (type)
+    )
+)
+
 ;; Deletes a directive and all of its variations (string, integer and object).
 ;; @param {string} type
-;; @param {int} [subject_id]
-(def-fn dve:delete type subject_id=0
+;; @param {string} [subject_id]
+(def-fn dve:delete type subject_id="0"
     (db:exec `DELETE FROM ##directives WHERE subject_id=? AND type=?`
         (subject_id) (type)
     )

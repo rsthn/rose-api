@@ -1,0 +1,25 @@
+
+(shield:validate
+    (shield:field token
+        required true
+        pattern identifier
+        check:invalid-token (eq? (config.system.token) ($))
+    )
+
+    (shield:field task
+        required true
+        pattern identifier
+    )
+)
+
+(import "lib/directives")
+
+(content-type "text/html")
+
+(when-not (dve:exists "periodic/task" (task))
+    (echo "⛔ Task <b>(task)</b> not found")
+    (return)
+)
+
+(dve:delete "periodic/task" (task))
+(echo "✅ Task <b>(task)</b> removed")

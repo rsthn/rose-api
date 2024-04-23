@@ -1,0 +1,37 @@
+
+(shield:validate
+    (shield:field token
+        required true
+        pattern identifier
+        check:invalid-token (eq? (config.system.token) ($))
+    )
+)
+
+(import "lib/directives")
+
+(content-type "text/html")
+
+(set now (datetime:now))
+
+(def-fn elapsed dtt1 dtt2
+    (set value (datetime:sub (dtt2) (dtt1)))
+    (when (lt (value) 60) (ret "(locale:number '.1,' (value)) seconds"))
+
+    (set value (/ (value) 60))
+    (when (lt (value) 60) (ret "(locale:number '.1,' (value)) minutes"))
+
+    (set value (/ (value) 60))
+    (when (lt (value) 24) (ret "(locale:number '.1,' (value)) hours"))
+
+    (set value (/ (value) 24))
+    (ret "(locale:number '.1,' (value)) days")
+)
+
+(for task (dve:get-all "periodic/task")
+    (echo "<b>🌠 (task)</b><br/>")
+    (set info (dve:get-obj "periodic/task" (task)))
+    (echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next_at = (info.next_at) \(in (elapsed (now) (info.next_at))\)<br/>")
+    (echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;period = (info.period)<br/>")
+    (echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runs = (info.runs)<br/>")
+    (echo "<br/>")
+)
