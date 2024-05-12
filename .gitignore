@@ -6,6 +6,5 @@ vendor/
 volatile/
 storage/
 deploy.js
-VERSION.txt
 composer.lock
 logs/
