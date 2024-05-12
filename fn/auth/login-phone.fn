@@ -51,7 +51,7 @@
     (shield:field user_agent
         required true
         pattern text
-        set (substr 0 256 ($))
+        set (substr 0 128 ($))
     )
 
     (shield:field device_token
