@@ -1,2 +1,0 @@
-;; This will show up in the periodic.log file
-(throw "Hi!")
