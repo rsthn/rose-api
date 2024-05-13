@@ -1,0 +1,48 @@
+
+(shield:validate
+    (shield:field token
+        required true
+        pattern identifier
+        check:invalid-token (eq? (config.system.token) ($))
+    )
+
+    (shield:field task
+        required true
+        pattern identifier
+    )
+)
+
+(import "lib/directives")
+
+(gateway:header "content-type: text/html")
+
+(when-not (dve:exists "periodic/task" (task))
+    (echo "⛔ Task <b>(task)</b> not found")
+    (stop)
+)
+
+(gateway:persistent)
+(set now (str (datetime:now)))
+
+(set info (dve:get-obj "periodic/task" (task)))
+(when-not (info) (set info (&)))
+(when-not (info.next_at) (set info.next_at (now)))
+(when-not (info.runs) (set info.runs 0))
+
+(when-not (info.period)
+    (echo "⛔ Task <b>(task)</b> has no period")
+    (stop)
+)
+
+(while (ge? (str:compare (now) (info.next_at)) 0)
+    (set info.next_at (concat (datetime:add (info.next_at) (info.period) "seconds"))))
+
+(inc info.runs)
+(dve:set-obj "periodic/task" (info) (task))
+
+(try
+    (eval (file:read "conf/periodic/(task).fn"))
+catch
+    (echo "[ERROR] [(datetime:now)] (task): (err)")
+    (trace-alt "periodic" "[ERROR] [(datetime:now)] (task): (err)")
+)

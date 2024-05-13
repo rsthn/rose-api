@@ -9,19 +9,19 @@
 
 (import "lib/directives")
 
-(content-type "text/html")
+(gateway:header "content-type: text/html")
 
 (set now (datetime:now))
 
 (def-fn elapsed dtt1 dtt2
     (set value (datetime:sub (dtt2) (dtt1)))
-    (when (lt (value) 60) (ret "(locale:number '.1,' (value)) seconds"))
+    (when (lt? (value) 60) (ret "(locale:number '.1,' (value)) seconds"))
 
     (set value (/ (value) 60))
-    (when (lt (value) 60) (ret "(locale:number '.1,' (value)) minutes"))
+    (when (lt? (value) 60) (ret "(locale:number '.1,' (value)) minutes"))
 
     (set value (/ (value) 60))
-    (when (lt (value) 24) (ret "(locale:number '.1,' (value)) hours"))
+    (when (lt? (value) 24) (ret "(locale:number '.1,' (value)) hours"))
 
     (set value (/ (value) 24))
     (ret "(locale:number '.1,' (value)) days")
