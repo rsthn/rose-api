@@ -1,0 +1,128 @@
+
+;; Returns a random code of the specified length (solely digits).
+;; @param {int} digits
+;; @returns {string}
+;; 
+(def-fn dve:rand digits
+    (set code "")
+    (while (lt? (len (code)) (digits))
+        (append code (mod (math:rand) 10)))
+    (substr 0 (digits) (code))
+)
+
+
+;; Returns boolean indicating if the specified directive exists.
+;; @param {string} type
+;; @param {string} [subject_id]
+;; @returns {bool}
+(def-fn dve:exists type subject_id="0"
+    (not-null? (db:scalar `SELECT 1 FROM ##directives WHERE subject_id=$1 AND type=$2`
+        (subject_id) (type)
+    ))
+)
+
+;; Sets the value of an integer directive.
+;; @param {string} type
+;; @param {int} value
+;; @param {string} [subject_id]
+(def-fn dve:set-int type value subject_id="0"
+    (db:exec `
+        INSERT INTO ##directives (last_modified, subject_id, type, intval) VALUES(
+            $1, $2, $3, $4
+        ) ON CONFLICT (subject_id, type) DO UPDATE SET
+            last_modified=$5, intval=$6
+    `
+        (datetime:now) (subject_id) (type) (value)
+        (datetime:now) (value)
+    )
+)
+
+;; Returns the value of an integer directive.
+;; @param {string} type
+;; @param {string} [subject_id]
+;; @returns {int}
+(def-fn dve:get-int type subject_id="0"
+    (db:scalar `SELECT intval FROM ##directives WHERE subject_id=$1 AND type=$2`
+        (subject_id) (type)
+    )
+)
+
+;; Sets the value of an string directive.
+;; @param {string} type
+;; @param {string} value
+;; @param {string} [subject_id]
+(def-fn dve:set-str type value subject_id="0"
+    (db:exec `
+        INSERT INTO ##directives (last_modified, subject_id, type, strval) VALUES(
+            $1, $2, $3, $4
+        ) ON CONFLICT (subject_id, type) DO UPDATE SET
+            last_modified=$5, strval=$6
+    `
+        (datetime:now) (subject_id) (type) (value)
+        (datetime:now) (value)
+    )
+)
+
+;; Returns the value of an string directive.
+;; @param {string} type
+;; @param {string} [subject_id]
+;; @returns {string}
+(def-fn dve:get-str type subject_id="0"
+    (db:scalar `SELECT strval FROM ##directives WHERE subject_id=$1 AND type=$2`
+        (subject_id) (type)
+    )
+)
+
+;; Sets the value of an object directive.
+;; @param {string} type
+;; @param {object} value
+;; @param {string} [subject_id]
+(def-fn dve:set-obj type value subject_id="0"
+    (db:exec `
+        INSERT INTO ##directives (last_modified, subject_id, type, textval) VALUES(
+            $1, $2, $3, $4
+        ) ON CONFLICT (subject_id, type) DO UPDATE SET
+            last_modified=$5, textval=$6
+    `
+        (datetime:now) (subject_id) (type) (json:str (value))
+        (datetime:now) (json:str (value))
+    )
+)
+
+;; Returns the value of an object directive.
+;; @param {string} type
+;; @param {string} [subject_id]
+;; @returns {object}
+(def-fn dve:get-obj type subject_id="0"
+    (json:parse (db:scalar `SELECT textval FROM ##directives WHERE subject_id=$1 AND type=$2`
+        (subject_id) (type)
+    ))
+)
+
+;; Returns the subject_id given a directive type and string value.
+;; @param {string} type
+;; @param {string} value
+;; @returns {string}
+(def-fn dve:subject type value
+    (db:scalar `SELECT subject_id FROM ##directives WHERE type=$1 AND strval=$2`
+        (type) (value)
+    )
+)
+
+;; Returns all subject ids matching the specified directive type.
+;; @param {string} type
+;; @returns {string[]}
+(def-fn dve:get-all type
+    (db:scalars `SELECT subject_id FROM ##directives WHERE type=$1`
+        (type)
+    )
+)
+
+;; Deletes a directive and all of its variations (string, integer and object).
+;; @param {string} type
+;; @param {string} [subject_id]
+(def-fn dve:delete type subject_id="0"
+    (db:exec `DELETE FROM ##directives WHERE subject_id=$1 AND type=$2`
+        (subject_id) (type)
+    )
+)

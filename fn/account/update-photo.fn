@@ -4,13 +4,16 @@
 
 (sentinel:auth-required)
 
-(shield:validate form
+(shield:validate input
     (shield:field photo
         required true
-        file-type:image png,jpg,jpeg
+        file-type:unsupported_image png,jpg,jpeg
         max-file-size:16m 16777216
     )
 )
 
-(utils:update-photo (form.photo) "user_id" (session.user.user_id) "users" "photo_path" 512)
-(call "account.get")
+(utils:update-photo (input.photo) "user_id" (session.user.user_id) "users" "photo" 512 512)
+
+{
+    data (common:get-user-details true)
+}

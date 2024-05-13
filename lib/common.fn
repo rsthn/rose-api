@@ -1,7 +1,28 @@
 
+(import "lib/utils")
+
 ;; Loads other user details in the session that are not loaded by default from the users table.
 (def-fn common:reload-user-details
     (session:open)
     (sentinel:reload)
-    ;(set session.user.example_field ...)
+
+    (map:assign
+        (session.user)
+        (db:row
+            `SELECT password, name, email, photo, timezone FROM global_users WHERE global_user_id=$1`
+            (session.user.global_user_id)
+        )
+    )
+)
+
+;; Returns the details of the current user.
+(def-fn common:get-user-details reload=false
+
+    (true? (reload)
+        (common:reload-user-details))
+
+    (map:assign
+        (map-get ["user_id" "name" "email" "privileges"] (session.user))
+        { photo_url (utils:photo-url (session.user.photo)) }
+    )
 )

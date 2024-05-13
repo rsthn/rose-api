@@ -25,10 +25,8 @@
 )
 
 (db:update "##users" "user_id=(session.user.user_id)" (input))
-(common:reload-user-details)
 
-(&
-    response 200
+{
     message (strings:get "@messages.msg_details_saved")
-    data (icall "account.get")
-)
+    data (common:get-user-details true)
+}

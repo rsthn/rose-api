@@ -1,38 +1,5 @@
-;;
-;;  [api] @generic
-;;  GET /account/get
-;;  Returns user account information.
-;;
-;;  [output]
-;;  content: application/json
-;;  type: object
-;;  properties:
-;;    response:
-;;      type: integer
-;;      description: Response code.
-;;    user_id:
-;;      type: integer
-;;      description: User ID.
-;;    name:
-;;      type: string
-;;      description: User name.
-;;    email:
-;;      type: string
-;;      description: User email address.
-;;    status:
-;;      type: string
-;;      description: User account status.
-;;
 
 (import "lib/common")
-(import "lib/utils")
 
 (sentinel:auth-required)
-(common:reload-user-details)
-
-(map:assign
-    (map-get ["user_id" "name" "email" "status"] (session.user))
-    (&
-        photo_url (utils:photo-url (session.user.photo_path))
-    )
-)
+(common:get-user-details true)

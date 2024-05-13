@@ -9,11 +9,11 @@
 ;;
 (def-fn utils:remove-photo fieldId id targetTable fieldPhoto
 
-    (set old_photo (db:scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = $1` (id)))
+    (set old_photo (db:scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = ?` (id)))
     (if (not-null? (old_photo))
         (file:remove (old_photo)))
 
-    (db:exec `UPDATE {targetTable} SET {fieldPhoto} = NULL WHERE {fieldId} = $1` (id))
+    (db:exec `UPDATE {targetTable} SET {fieldPhoto} = NULL WHERE {fieldId} = ?` (id))
 )
 
 ;;
@@ -34,19 +34,19 @@
     (when (null? (formFile)) (ret))
 
     (set new_photo (image:load (formFile.path)))
-    (set old_photo (db:scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = $1` (id)))
+    (set old_photo (db:scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = ?` (id)))
     (if (not-null? (old_photo))
         (file:remove (old_photo)))
 
     (set target "storage/(str:replace '#' '' (targetTable))/(id)_(math:rand).png")
 
     (set new_photo (? (and (width) (height))
-        (image:smartcut (new_photo) (width) (height) 0 0 true)
+        (image:smartcut (new_photo) (width) (height) "CENTER" "CENTER" true)
         (image:fit (new_photo) (width) (height) true)
     ))
 
     (file:write (target) (image:data (new_photo) "png"))
-    (db:exec `UPDATE {targetTable} SET {fieldPhoto} = $1 WHERE {fieldId} = $2` (target) (id))
+    (db:exec `UPDATE {targetTable} SET {fieldPhoto} = ? WHERE {fieldId} = ?` (target) (id))
 )
 
 ;;
