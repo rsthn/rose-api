@@ -1,36 +1,42 @@
 
-(shield:validate
-    (shield:field token
+(shield:method-required "GET")
+
+(shield:validate-data input (gateway.request) (object
+    token (rules
         required true
+        min-length 8
+        max-length 256
         pattern identifier
-        check:invalid-token (eq? (config.system.token) ($))
+        check:@invalid_token (eq? (config.system.token) ($))
     )
 
-    (shield:field task
+    task (rules
         required true
+        min-length 4
+        max-length 128
         pattern identifier
     )
-)
+))
 
 (import "lib/directives")
 
 (gateway:header "content-type: text/html")
 
-(when-not (dve:exists "periodic/task" (task))
-    (echo "⛔ Task <b>(task)</b> not found")
+(when-not (dve:exists "periodic/task" (input.task))
+    (echo "⛔ Task <b>(input.task)</b> not found")
     (stop)
 )
 
 (gateway:persistent)
 (set now (str (datetime:now)))
 
-(set info (dve:get-obj "periodic/task" (task)))
+(set info (dve:get-obj "periodic/task" (input.task)))
 (when-not (info) (set info (&)))
 (when-not (info.next_at) (set info.next_at (now)))
 (when-not (info.runs) (set info.runs 0))
 
 (when-not (info.period)
-    (echo "⛔ Task <b>(task)</b> has no period")
+    (echo "⛔ Task <b>(input.task)</b> has no period")
     (stop)
 )
 
@@ -38,11 +44,11 @@
     (set info.next_at (concat (datetime:add (info.next_at) (info.period) "seconds"))))
 
 (inc info.runs)
-(dve:set-obj "periodic/task" (info) (task))
+(dve:set-obj "periodic/task" (info) (input.task))
 
 (try
-    (eval (file:read "conf/periodic/(task).fn"))
+    (eval (file:read "conf/periodic/(input.task).fn"))
 catch
-    (echo "[ERROR] [(datetime:now)] (task): (err)")
-    (trace-alt "periodic" "[ERROR] [(datetime:now)] (task): (err)")
+    (echo "[ERROR] [(datetime:now)] (input.task): (err)")
+    (trace-alt "periodic" "[ERROR] [(datetime:now)] (input.task): (err)")
 )

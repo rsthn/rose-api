@@ -1,25 +1,31 @@
 
-(shield:validate
-    (shield:field token
+(shield:method-required "GET")
+
+(shield:validate-data input (gateway.request) (object
+    token (rules
         required true
+        min-length 8
+        max-length 256
         pattern identifier
-        check:invalid-token (eq? (config.system.token) ($))
+        check:@invalid_token (eq? (config.system.token) ($))
     )
 
-    (shield:field task
+    task (rules
         required true
+        min-length 4
+        max-length 128
         pattern identifier
     )
-)
+))
 
 (import "lib/directives")
 
-(content-type "text/html")
+(gateway:header "Content-Type: text/html")
 
-(when-not (dve:exists "periodic/task" (task))
-    (echo "⛔ Task <b>(task)</b> not found")
+(when-not (dve:exists "periodic/task" (input.task))
+    (echo "⛔ Task <b>(input.task)</b> not found")
     (return)
 )
 
-(dve:delete "periodic/task" (task))
-(echo "✅ Task <b>(task)</b> removed")
+(dve:delete "periodic/task" (input.task))
+(echo "✅ Task <b>(input.task)</b> removed")

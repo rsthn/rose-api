@@ -1,11 +1,15 @@
 
-(shield:validate
-    (shield:field token
+(shield:method-required "GET")
+
+(shield:validate-data input (gateway.request) (object
+    token (rules
         required true
+        min-length 8
+        max-length 256
         pattern identifier
-        check:invalid-token (eq? (config.system.token) ($))
+        check:@invalid_token (eq? (config.system.token) ($))
     )
-)
+))
 
 ;; Load environment configuration file.
 (when-not (path:exists "conf/(config.env).conf")
