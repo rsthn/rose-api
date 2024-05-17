@@ -1,30 +1,25 @@
 
-(import "lib/common")
-
+(shield:method-required "PATCH")
+(shield:body-required)
 (sentinel:auth-required)
 
-(shield:validate input
+(import "lib/common")
 
-    (shield:field name
+(shield:validate-data input (gateway.body) (object
+    name (rules
         presence true|ignore
         required true|empty
         pattern name
     )
 
-    (shield:field email
+    email (rules
         presence true|ignore
         required true|empty
         pattern email
     )
+))
 
-    (shield:field phone
-        presence true|ignore
-        required true|empty
-        pattern phone
-    )
-)
-
-(db:update "##users" "user_id=(session.user.user_id)" (input))
+(db:update "global_users" "global_user_id=(session.user.global_user_id)" (input))
 
 {
     message (strings:get "@messages.msg_details_saved")

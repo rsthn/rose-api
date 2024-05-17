@@ -1,0 +1,14 @@
+
+(shield:method-required "PUT")
+(shield:body-required "image/jpeg" "image/png")
+(shield:body-max-size 16777216)
+(sentinel:auth-required)
+
+(import "lib/common")
+(import "lib/utils")
+
+(utils:update-photo (gateway.input) "global_user_id" (session.user.global_user_id) "global_users" "photo" 512 512)
+
+{
+    data (common:get-user-details true)
+}

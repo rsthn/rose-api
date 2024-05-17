@@ -1,5 +1,6 @@
 
-(import "lib/common")
-
+(shield:method-required "GET")
 (sentinel:auth-required)
+
+(import "lib/common")
 (common:get-user-details true)

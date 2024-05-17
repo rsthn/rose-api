@@ -31,7 +31,8 @@
 ;;
 (def-fn utils:update-photo formFile fieldId id targetTable fieldPhoto width height=0
 
-    (when (null? (formFile)) (ret))
+    (when (null? (formFile))
+        (ret))
 
     (set new_photo (image:load (formFile.path)))
     (set old_photo (db:scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = ?` (id)))
