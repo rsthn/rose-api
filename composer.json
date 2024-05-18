@@ -14,5 +14,8 @@
         "allow-plugins": {
             "rsthn/rose-extension-installer": true
         }
+    },
+    "archive": {
+        "exclude": [".deploy", "README.md", "VERSION.txt"]
     }
 }

@@ -27,7 +27,7 @@
     (sentinel:access-denied "user:(input.username)" "wait")
     (stop {
         response 409
-        error (strings:get "@messages.err_credentials")
+        error (strings:get "@messages.invalid_credentials")
     })
 )
 

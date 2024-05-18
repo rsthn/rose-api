@@ -92,3 +92,14 @@ CREATE TABLE sessions
     , data VARCHAR(8192)
 );
 CREATE INDEX sessions_device_id ON sessions (device_id);
+
+--------------------------------------------------------------------------------
+CREATE TABLE suspicious_identifiers
+(
+    identifier VARCHAR(512) NOT NULL PRIMARY KEY
+    , next_attempt_at TIMESTAMP
+    , last_attempt_at TIMESTAMP NOT NULL
+    , count_failed INT DEFAULT 1
+    , count_blocked INT DEFAULT 0
+    , is_banned INT DEFAULT 0
+);

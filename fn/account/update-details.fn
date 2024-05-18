@@ -19,7 +19,7 @@
     )
 ))
 
-(db:update "global_users" "global_user_id=(session.user.global_user_id)" (input))
+(db:update "users" "user_id=(session.user.user_id)" (input))
 
 {
     message (strings:get "@messages.msg_details_saved")

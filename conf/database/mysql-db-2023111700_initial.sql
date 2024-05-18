@@ -107,6 +107,19 @@ ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1;
 CREATE INDEX sessions_device_id ON sessions (device_id);
 
 --------------------------------------------------------------------------------
+CREATE TABLE suspicious_identifiers
+(
+    identifier VARCHAR(128) NOT NULL,
+    PRIMARY KEY (identifier),
+    next_attempt_at DATETIME DEFAULT NULL,
+    last_attempt_at DATETIME NOT NULL,
+    count_failed INT DEFAULT 1,
+    count_blocked INT DEFAULT 0,
+    is_banned INT DEFAULT 0
+)
+ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1;
+
+--------------------------------------------------------------------------------
 CREATE EVENT evt_session_cleanup
 ON SCHEDULE EVERY 3600 SECOND
 STARTS CONCAT(CURDATE(), ' 00:00:00')

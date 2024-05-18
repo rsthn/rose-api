@@ -7,7 +7,7 @@
 (import "lib/common")
 (import "lib/utils")
 
-(utils:update-photo (gateway.input) "global_user_id" (session.user.global_user_id) "global_users" "photo" 512 512)
+(utils:update-photo (gateway.input) "user_id" (session.user.user_id) "users" "photo" 512 512)
 
 {
     data (common:get-user-details true)
