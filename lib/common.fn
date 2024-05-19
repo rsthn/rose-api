@@ -14,7 +14,7 @@
         (common:reload-user-details))
 
     (map:assign
-        (map-get ["user_id" "name" "email" "privileges"] (session.user))
+        (map-get ["user_id" "name" "email" "permissions"] (session.user))
         { photo_url (utils:photo-url (session.user.photo)) }
     )
 )
