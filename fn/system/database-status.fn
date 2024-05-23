@@ -12,11 +12,11 @@
 ))
 
 ;; Load environment configuration file.
-(when-not (path:exists "conf/(config.env).conf")
-    (throw "Configuration file `(config.env).conf` does not exist"))
+(when-not (path:exists "conf/db-version.conf")
+    (file:write "conf/db-version.conf" ""))
 
-(set conf (config:parse (file:read "conf/(config.env).conf")))
-(when-not (conf.Database) (set conf.Database (&)))
+(set conf (config:parse (file:read "conf/db-version.conf")))
+(when-not (conf.database) (set conf.database (&)))
 
 ;; Load list of patches with prefix "db-".
 (set patches (array:sort 
@@ -31,7 +31,7 @@
 (&
     databaseTime (db_time)
     serverTime (srv_time)
-    currentVersion (or (conf.Database.version) "N/A")
+    timezone (ne? (db_time) (srv_time) "🚨 Database and server timezones do not match" (config.Locale.timezone))
+    currentVersion (or (conf.Database.version) "None")
     latestVersion ((array:last (patches)).version)
-    status (ne? (db_time) (srv_time) "🚨 Database and server timezones do not match" "Ok")
 )
