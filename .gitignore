@@ -5,6 +5,5 @@ vendor/
 *.tmp
 volatile/
 storage/
-deploy.js
 composer.lock
 logs/
