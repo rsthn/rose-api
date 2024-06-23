@@ -82,13 +82,15 @@ CREATE INDEX token_permissions_flag ON token_permissions (token_id, flag);
 --------------------------------------------------------------------------------
 CREATE TABLE devices
 (
-    device_id VARCHAR(48) PRIMARY KEY,
+    device_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     created_at DATETIME DEFAULT NULL,
     last_activity DATETIME DEFAULT NULL,
     ipaddr VARCHAR(128) DEFAULT NULL,
     user_id INT DEFAULT NULL,
     user_agent VARCHAR(128) DEFAULT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    token VARCHAR(512) UNIQUE NOT NULL,
+    secret VARCHAR(512) DEFAULT NULL
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1;
 
@@ -98,10 +100,11 @@ CREATE TABLE sessions
     session_id VARCHAR(48) PRIMARY KEY,
     created_at DATETIME DEFAULT NULL,
     last_activity DATETIME DEFAULT NULL,
-    device_id VARCHAR(48) DEFAULT NULL,
+    device_id INT DEFAULT NULL,
+    FOREIGN KEY (device_id) REFERENCES devices (device_id) ON DELETE CASCADE
     user_id INT DEFAULT NULL,
-    data VARCHAR(8192) DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+    data VARCHAR(8192) DEFAULT NULL,
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1;
 CREATE INDEX sessions_device_id ON sessions (device_id);

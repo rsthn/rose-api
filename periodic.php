@@ -4,4 +4,4 @@ chdir(__DIR__);
 require_once ('vendor/autoload.php');
 
 Rose\Main::cli (dirname(__FILE__), true);
-Rose\Ext\Wind::run('wind/periodic.fn');
+Rose\Ext\Wind::run('lib/periodic.fn');

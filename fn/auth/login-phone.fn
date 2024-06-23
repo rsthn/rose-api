@@ -94,7 +94,7 @@
 
 (set session.one_time_code null)
 
-;; load the user exists or create a new user if it doesn't exist
+;; load the user or create a new one if it doesn't exist
 (set user (db:row "SELECT * FROM users WHERE phone_number=$1 AND deleted_at IS NULL" (phone_number) ))
 (when-not (user)
     (set user (db:row `INSERT INTO users (created_at, phone_number, name) VALUES ($1, $2, $3) RETURNING user_id` (datetime:now) (phone_number) ""))
