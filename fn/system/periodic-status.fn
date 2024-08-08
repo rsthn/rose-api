@@ -1,0 +1,19 @@
+
+(shield:validate
+    (shield:field token
+        required true
+        pattern identifier
+        check:invalid-token (eq? (config.system.token) ($))
+    )
+)
+
+(import "lib/directives")
+
+(&
+    enabled (eq (config.periodic.enabled) "true")
+    interval (config.periodic.interval)
+    folder-exists (path:exists "conf/periodic")
+    last-run (dve:get-str "periodic/last")
+    total-runs (dve:get-int "periodic/count")
+    running (dve:get-int "periodic/last")
+)

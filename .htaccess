@@ -1,21 +1,21 @@
 Options -Indexes
 
 <IfModule mod_headers.c>
-	SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 </IfModule>
 
 <IfModule mod_rewrite.c>
-	RewriteEngine On
-	RewriteBase /
+    RewriteEngine On
+    RewriteBase /
 
-	#RewriteCond %{HTTPS} off
-	#RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    #RewriteCond %{HTTPS} off
+    #RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-	RewriteCond %{SCRIPT_FILENAME} !-f
-	RewriteCond %{SCRIPT_FILENAME} !-d
-	RewriteRule . index.php [L,QSA]
+    RewriteCond %{SCRIPT_FILENAME} !-f
+    RewriteCond %{SCRIPT_FILENAME} !-d
+    RewriteRule . index.php [L,QSA]
 </IfModule>
 
 <Files ~ "\.(conf|ini|plain|sql|log)$|^\.">
-	require all denied
+    require all denied
 </Files>

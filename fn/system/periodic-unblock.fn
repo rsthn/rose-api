@@ -1,0 +1,13 @@
+
+(shield::validate
+    (shield::field token
+        required true
+        pattern identifier
+        check:invalid-token (eq? (config.system.token) ($))
+    )
+)
+
+(import "lib/directives")
+
+(dve::set-int "periodic/last" 0)
+(&)
