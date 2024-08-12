@@ -101,10 +101,10 @@ CREATE TABLE sessions
     created_at DATETIME DEFAULT NULL,
     last_activity DATETIME DEFAULT NULL,
     device_id INT DEFAULT NULL,
-    FOREIGN KEY (device_id) REFERENCES devices (device_id) ON DELETE CASCADE
+    FOREIGN KEY (device_id) REFERENCES devices (device_id) ON DELETE CASCADE,
     user_id INT DEFAULT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-    data VARCHAR(8192) DEFAULT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    data VARCHAR(8192) DEFAULT NULL
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1;
 CREATE INDEX sessions_device_id ON sessions (device_id);

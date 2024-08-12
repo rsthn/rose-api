@@ -21,7 +21,7 @@
 ;; Load list of patches with prefix "db-".
 (set patches (array:sort 
     (map (filter (dir:files "conf/database") (and (ends-with? ".sql" (i.name)) (starts-with? "db-" (i.name))))
-        (& name (i.name) path (i.path) version (substr 3 (array:first (split "_" (i.name)))) ))
+        (& name (i.name) path (i.path) version (array:at 1 (split "-" (i.name))) ))
     (str:compare (a.version) (b.version))
 ))
 
@@ -32,6 +32,6 @@
     databaseTime (db_time)
     serverTime (srv_time)
     timezone (ne? (db_time) (srv_time) "🚨 Database and server timezones do not match" (config.Locale.timezone))
-    currentVersion (or (conf.Database.version) "None")
+    currentVersion (or (conf.database.version) "None")
     latestVersion ((array:last (patches)).version)
 )
