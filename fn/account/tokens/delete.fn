@@ -1,0 +1,17 @@
+
+(shield:method-required "DELETE")
+(sentinel:auth-required)
+
+(shield:validate-data token (gateway.request) (object
+    token_id (rules
+        required true
+        pattern integer
+        fail:@token_not_found (null? (db:scalar 
+            `select token_id from tokens where token_id=? and user_id=?`
+            ($) (session.user.user_id)
+        ))
+    )
+))
+
+(db:exec `delete from tokens where token_id=?` (token.token_id))
+(&)

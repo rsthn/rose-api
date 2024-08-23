@@ -1,0 +1,79 @@
+
+(shield:method-required "PATCH")
+(shield:body-required "application/json")
+(sentinel:auth-required)
+
+(shield:validate-data token (gateway.body) (object
+    token_id (rules
+        required true
+        expected integer
+        fail:@token_not_found (null? (db:scalar 
+            `select token_id from tokens where token_id=? and user_id=?`
+            ($) (session.user.user_id)
+        ))
+    )
+))
+
+(shield:validate-data input (gateway.body) (object
+    name (rules
+        required false
+        expected string
+        min-length 4
+        max-length 128
+    )
+))
+
+(shield:validate-data extra (gateway.body) (object
+    permissions (rules
+        required false
+        expected array
+        unique-items true
+        data (array (string
+            required true
+            expected string
+            min-length 4
+            max-length 512
+            block (set permission_id (db:scalar 
+                `select permission_id from permissions where name=?`
+                ($)
+            ))
+            fail:@permission_not_found (null? (permission_id))
+            fail:@permission_not_allowed (and (starts-with? "plat:" ($)) (not (sentinel:has-permission "plat:master")))
+            fail:@permission_not_allowed (and (starts-with? "org:" ($)) (not (sentinel:has-permission "org:master")))
+            set (permission_id)
+        ))
+    )
+))
+
+(db:update "tokens" (token) (input))
+
+(when (extra.permissions)
+    (db:exec `update token_permissions set flag=1 where token_id=?` (token.token_id))
+    (db:exec (concat
+        `insert into token_permissions (token_id, permission_id) values `
+        (join "," (map p (extra.permissions) `({token.token_id}, {p})`))
+        ` on conflict (token_id, permission_id) do update set flag=0`
+    ))
+    (db:exec `delete from token_permissions where token_id=? and flag=1` (token.token_id))
+)
+
+(for row in (db:rows `
+    select
+        t.token_id,
+        t.created_at,
+        t.blocked_at,
+        t.name,
+        t.token,
+        string_agg(p.name, ',') as permissions
+
+    from tokens t
+    left join token_permissions tp using (token_id)
+    left join permissions p using (permission_id)
+    where t.deleted_at is null and t.token_id=?
+    group by t.token_id, t.created_at, t.blocked_at, t.name, t.token
+    order by t.created_at asc
+`
+    (token.token_id)
+)
+    (set row.permissions (split "," (row.permissions)))
+)

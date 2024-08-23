@@ -1,0 +1,24 @@
+
+(shield:method-required "GET")
+(sentinel:auth-required)
+
+(for row in (db:rows `
+    select
+        t.token_id,
+        t.created_at,
+        t.blocked_at,
+        t.name,
+        t.token,
+        string_agg(p.name, ',') as permissions
+
+    from tokens t
+    left join token_permissions tp using (token_id)
+    left join permissions p using (permission_id)
+    where t.deleted_at is null and user_id=?
+    group by t.token_id, t.created_at, t.blocked_at, t.name, t.token
+    order by t.created_at asc
+`
+    (session.user.user_id)
+)
+    (set row.permissions (split "," (row.permissions)))
+)

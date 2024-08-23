@@ -1,0 +1,68 @@
+
+(shield:method-required "POST")
+(shield:body-required "application/json")
+(sentinel:auth-required)
+
+(shield:validate-data input (gateway.body) (object
+
+    name (rules
+        required true
+        expected string
+        min-length 4
+        max-length 128
+    )
+
+    created_at (rules
+        set (datetime:now)
+    )
+
+    user_id (rules
+        set (session.user.user_id)
+    )
+
+    token (rules
+        requires user_id
+        set (substr 0 128 
+                (base64u:encode (concat 
+                    (crypto:random-bytes 48) 
+                    (crypto:hmac-bin "sha512" "user:($root.user_id)" (crypto:random-bytes 128))
+                ))
+            )
+    )
+))
+
+(shield:validate-data extra (gateway.body) (object
+    permissions (rules
+        required false
+        expected array
+        unique-items true
+        data (array (string
+            required true
+            expected string
+            min-length 4
+            max-length 512
+            block (set permission_id (db:scalar 
+                `select permission_id from permissions where name=?`
+                ($)
+            ))
+            fail:@permission_not_found (null? (permission_id))
+            fail:@permission_not_allowed (and (starts-with? "plat:" ($)) (not (sentinel:has-permission "plat:master")))
+            fail:@permission_not_allowed (and (starts-with? "org:" ($)) (not (sentinel:has-permission "org:master")))
+            set (permission_id)
+        ))
+    )
+))
+
+(set token_id (db:insert "tokens" (input)))
+
+(when (extra.permissions)
+    (db:exec (concat
+        `insert into token_permissions (token_id, permission_id) values `
+        (join "," (map p (extra.permissions) `({token_id}, {p})`))
+    ))
+)
+
+{ 
+    token_id (token_id)
+    token (input.token)
+}

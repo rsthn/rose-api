@@ -1,0 +1,19 @@
+
+(shield:validate
+    (shield:field token
+        required true
+        pattern identifier
+        check:invalid-token (eq? (config.system.token) ($))
+    )
+
+    (shield:field email
+        required true
+        pattern email
+    )
+)
+
+(mail::send
+    rcpt (email)
+    subject "Test email"
+    body "Testint <b>html</b>! This is a test email."
+)
