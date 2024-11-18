@@ -7,7 +7,7 @@
     (set code "")
     (while (lt? (len (code)) (digits))
         (append code (mod (math:rand) 10)))
-    (substr 0 (digits) (code))
+    (str:sub 0 (digits) (code))
 )
 
 

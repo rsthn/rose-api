@@ -22,7 +22,7 @@
 
     token (rules
         requires user_id
-        set (substr 0 128 
+        set (str:sub 0 128 
                 (base64u:encode (concat 
                     (crypto:random-bytes 48) 
                     (crypto:hmac-bin "sha512" "user:($root.user_id)" (crypto:random-bytes 128))
