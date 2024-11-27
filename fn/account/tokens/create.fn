@@ -8,6 +8,7 @@
     name (rules
         required true
         expected string
+        pattern text
         min-length 4
         max-length 128
     )
