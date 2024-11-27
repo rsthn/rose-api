@@ -25,8 +25,8 @@
     (str:compare (a.version) (b.version))
 ))
 
-(set db_time (datetime:parse (db:scalar `SELECT NOW()`)))
-(set srv_time (datetime:now))
+(set db_time (locale:iso-datetime (datetime:parse (db:scalar `SELECT NOW()`))))
+(set srv_time (locale:iso-datetime (datetime:now)))
 
 (&
     databaseTime (db_time)

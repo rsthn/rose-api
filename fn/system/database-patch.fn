@@ -33,6 +33,8 @@
 (set status_report [])
 (set failed false)
 
+(db:exec "BEGIN")
+
 (for patch (patches)
 
     (when (and (not-null? (conf.database.version)) (le? (str:compare (patch.version) (conf.database.version)) 0))
@@ -67,8 +69,13 @@
 ;; Save latest known correct version stored.
 (file:write "conf/db-version.conf" (config:str (conf)))
 
+(when (failed)
+    (db:exec "ROLLBACK"))
+
 (when-not (failed)
-    (array:push (status_report) "🎉 Database is up to date!"))
+    (db:exec "COMMIT")
+    (array:push (status_report) "🎉 Database is up to date!")
+)
 
 (gateway:header "Content-Type: text/html")
 (str:replace "\n" "<br/>"

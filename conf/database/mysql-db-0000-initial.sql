@@ -21,7 +21,11 @@ CREATE TABLE users
     deleted_at DATETIME DEFAULT NULL,
     blocked_at DATETIME DEFAULT NULL,
     username VARCHAR(256) NOT NULL,
-    password VARCHAR(96) NOT NULL
+    password VARCHAR(96) NOT NULL,
+
+    name VARCHAR(256) NOT NULL,
+    email VARCHAR(256),
+    photo VARCHAR(256)
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1;
 CREATE INDEX users_created_at ON users (created_at);
@@ -33,6 +37,7 @@ CREATE INDEX users_username ON users (username, deleted_at);
 CREATE TABLE permissions
 (
     permission_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    deleted_at DATETIME DEFAULT NULL,
     name VARCHAR(128) NOT NULL UNIQUE
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -73,8 +78,8 @@ CREATE TABLE token_permissions
     permission_id INT NOT NULL,
     flag INT DEFAULT 0,
     PRIMARY KEY (token_id, permission_id),
-    FOREIGN KEY (token_id) REFERENCES tokens (token_id),
-    FOREIGN KEY (permission_id) REFERENCES permissions (permission_id)
+    FOREIGN KEY (token_id) REFERENCES tokens (token_id) ON DELETE CASCADE,
+    FOREIGN KEY (permission_id) REFERENCES permissions (permission_id) ON DELETE CASCADE
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 CREATE INDEX token_permissions_flag ON token_permissions (token_id, flag);
