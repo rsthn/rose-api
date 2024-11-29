@@ -7,13 +7,13 @@
 
 (shield:validate-data input (gateway.body) (object
     name (rules
-        presence true|ignore
+        presence false
         required true|empty
         pattern name
     )
 
     email (rules
-        presence true|ignore
+        presence false
         required true|empty
         pattern email
     )
