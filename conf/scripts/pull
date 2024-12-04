@@ -1,0 +1,70 @@
+#!rose :deploy
+
+# Configuration variables.
+SOURCE git_repository_url
+ENV_VAR ROSE_ENV
+
+# General validation.
+CHDIR ../..
+
+IF {not {path:exists "rose-env"}}
+    FAIL Current working directory is not a Rose project.
+END-IF
+
+IF {not {env:get {ENV_VAR}}}
+    FAIL Environment variable {clr 96}{ENV_VAR}{clr 0} is not set.
+END-IF
+
+IF {not {path:exists {path:append "conf" "{env:get {ENV_VAR}}.conf"}}}
+    FAIL Configuration file {clr 96}conf/{env:get {ENV_VAR}}.conf{clr 0} does not exist.
+END-IF
+
+IF {eq? "git_repository_url" {SOURCE}}
+    FAIL Repository URL is not set.
+END-IF
+
+# Pull code from repository into temporal dir.
+TEMP {path:append {path:cwd} tmp}
+EXEC git clone "{SOURCE}" "{TEMP}"
+
+# Copy files from temporal dir.
+ECHO 🧪 Updating ...
+
+DEL {TEMP}/conf/prod.conf
+DEL {TEMP}/conf/db-version.conf
+
+r0 {TEMP}/conf
+DIRCOPY conf
+
+r0 {TEMP}/fn
+DIRCOPY fn
+
+r0 {TEMP}/lib
+DIRCOPY lib
+
+r0 {TEMP}/strings
+DIRCOPY strings
+
+r0 {TEMP}/vendor
+DIRCOPY vendor
+
+r0 {TEMP}/periodic.php
+COPY .
+
+r0 {TEMP}/composer.json
+COPY .
+
+r0 {TEMP}/composer.lock
+COPY .
+
+r0 {env:get {ENV_VAR}}
+WRITE rose-env
+
+# Clean temporal folder.
+RMDIR {TEMP}
+
+# Install composer dependencies.
+ECHO 🧪 Running composer install ...
+EXEC composer install
+
+ECHO ✨ Pulled: v{{json:parse {file:read "composer.json"}}.version}

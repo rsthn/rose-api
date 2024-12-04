@@ -1,0 +1,92 @@
+#!rose :deploy
+
+# General validation.
+CHDIR ../..
+
+# Determine if we're using a VERSION file.
+ECHO 📢 Checking version ...
+BEGIN
+    (def-fn validate_version version
+        (set parts (split "." (version)))
+        (assert (eq? 3 (parts.length))
+            "Version value required to be of the format: \e[97mmajor.minor.patch\e[0m")
+        (assert (all val in (parts) (re:matches "/^-?\d+$/" (val)))
+            "Version components should be all integers, found: \e[97m(version)\e[0m")
+    )
+
+    (def-fn bump_version version
+        (with v (split "." (version))
+            (set i (- (len (v)) 1))
+            (set v.(i) (+ 1 (v.(i))))
+            (join "." (v))
+        )
+    )
+
+    (def-fn process_json_file filename
+        (set data (json:parse (file:read (filename))))
+        (assert (data.version)
+            "Could not find version in: \e[97m(filename)\e[0m")
+
+        (validate_version (data.version))
+        (set data.version (bump_version (data.version)))
+        (file:write (filename) (json:dump (data)))
+        (data.version)
+    )
+
+    (block
+        (when (path:exists "VERSION")
+            (set version (file:read "VERSION"))
+            (validate_version (version))
+            (set version (bump_version (version)))
+            (file:write "VERSION" (version))
+            (set-var VERSION (version))
+            (echo "Found version in \e[97mVERSION\e[0m file")
+            (yield 2 "")
+        )
+
+        (when (path:exists "CHANGELOG.md")
+            (set version (re:get "/v\([0-9.]+\)/" (file:read "CHANGELOG.md") 1))
+            (assert (version)
+                "Could not find version in CHANGELOG.md")
+
+            (validate_version (version))
+            (set-var VERSION (version))
+            (echo "Found version in \e[97mCHANGELOG.md\e[0m file")
+            (yield 2 "")
+        )
+
+        (when (path:exists "composer.json")
+            (set-var VERSION (process_json_file "composer.json"))
+            (echo "Found version in \e[97mcomposer.json\e[0m file")
+            (yield 2 "")
+        )
+
+        (when (path:exists "package.json")
+            (set-var VERSION (process_json_file "package.json"))
+            (echo "Found version in \e[97mpackage.json\e[0m file")
+            (yield 2 "")
+        )
+
+        (throw "Unable to get version from any of the following files: VERSION, CHANGELOG.md, package.json or composer.json")
+    )
+END
+
+# Compose the commit message.
+IF {eq? 0 {len {args}}}
+    COMMIT_MSG v{VERSION}
+ELSE
+    COMMIT_MSG {args.0\nv{VERSION}
+END-IF
+
+ECHO 📢 Pushing to git ...
+    DEL message.txt
+    EXEC git add .
+    r0 {COMMIT_MSG}
+    WRITE message.txt
+    EXEC git commit -F message.txt
+    DEL message.txt
+    EXEC git tag v{VERSION}
+    EXEC git push --tags
+    EXEC git push
+
+ECHO ✨ Pushed: {clr 97}v{VERSION}{clr 0}
