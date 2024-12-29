@@ -29,7 +29,7 @@ CREATE TABLE users
 CREATE INDEX users_created_at ON users (created_at);
 CREATE INDEX users_deleted_at ON users (deleted_at);
 CREATE INDEX users_blocked_at ON users (blocked_at);
-CREATE INDEX users_username ON users (deleted_at, username);
+CREATE UNIQUE INDEX users_username ON users (username) WHERE deleted_at IS NULL;
 
 --------------------------------------------------------------------------------
 CREATE TABLE permissions
@@ -38,7 +38,7 @@ CREATE TABLE permissions
     , deleted_at TIMESTAMP
     , name VARCHAR(128) NOT NULL
 );
-CREATE INDEX permissions_name ON permissions (name) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX permissions_name ON permissions (name) WHERE deleted_at IS NULL;
 
 --------------------------------------------------------------------------------
 CREATE TABLE user_permissions
@@ -58,12 +58,12 @@ CREATE TABLE tokens
     , deleted_at TIMESTAMP
     , blocked_at TIMESTAMP
     , user_id BIGINT NOT NULL
-    , token VARCHAR(128) NOT NULL UNIQUE
+    , token VARCHAR(128) NOT NULL
     , name VARCHAR(128) NOT NULL
     , FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
 CREATE INDEX tokens_user_id ON tokens (user_id, deleted_at);
-CREATE INDEX tokens_token ON tokens (token, deleted_at);
+CREATE UNIQUE INDEX tokens_token ON tokens (token);
 
 --------------------------------------------------------------------------------
 CREATE TABLE token_permissions
@@ -85,9 +85,10 @@ CREATE TABLE devices
     , user_id BIGINT REFERENCES users (user_id) ON DELETE CASCADE
     , user_agent VARCHAR(128)
     , webpush_subscription TEXT
-    , token VARCHAR(512) NOT NULL UNIQUE
+    , token VARCHAR(512) NOT NULL
     , secret VARCHAR(512) DEFAULT NULL
 );
+CREATE UNIQUE INDEX devices_token ON devices (token);
 
 --------------------------------------------------------------------------------
 CREATE TABLE sessions

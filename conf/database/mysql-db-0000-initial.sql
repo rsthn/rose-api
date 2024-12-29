@@ -31,16 +31,17 @@ ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1;
 CREATE INDEX users_created_at ON users (created_at);
 CREATE INDEX users_deleted_at ON users (deleted_at);
 CREATE INDEX users_blocked_at ON users (blocked_at);
-CREATE INDEX users_username ON users (username, deleted_at);
+CREATE UNIQUE INDEX users_username ON users (username, deleted_at);
 
 --------------------------------------------------------------------------------
 CREATE TABLE permissions
 (
     permission_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     deleted_at DATETIME DEFAULT NULL,
-    name VARCHAR(128) NOT NULL UNIQUE
+    name VARCHAR(128) NOT NULL
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE UNIQUE INDEX permissions_name ON permissions (name, deleted_at);
 
 --------------------------------------------------------------------------------
 CREATE TABLE user_permissions
@@ -63,13 +64,13 @@ CREATE TABLE tokens
     deleted_at DATETIME DEFAULT NULL,
     blocked_at DATETIME DEFAULT NULL,
     user_id INT NOT NULL,
-    token VARCHAR(128) NOT NULL UNIQUE,
+    token VARCHAR(128) NOT NULL,
     name VARCHAR(128) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (user_id)
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1;
 CREATE INDEX tokens_user_id ON tokens (user_id, deleted_at);
-CREATE INDEX tokens_token ON tokens (token, deleted_at);
+CREATE UNIQUE INDEX tokens_token ON tokens (token);
 
 --------------------------------------------------------------------------------
 CREATE TABLE token_permissions
@@ -94,10 +95,11 @@ CREATE TABLE devices
     user_id INT DEFAULT NULL,
     user_agent VARCHAR(128) DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    token VARCHAR(512) UNIQUE NOT NULL,
+    token VARCHAR(512) NOT NULL,
     secret VARCHAR(512) DEFAULT NULL
 )
 ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1;
+CREATE UNIQUE INDEX devices_token ON devices (token);
 
 --------------------------------------------------------------------------------
 CREATE TABLE sessions

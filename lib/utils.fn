@@ -2,19 +2,20 @@
 ;;
 ;; Removes a photo from a record in the database and sets its value to NULL.
 ;;
-;; @param {String} fieldId
+;; @param {String} field_id
 ;; @param {String} id
-;; @param {String} targetTable
-;; @param {String} fieldPhoto
+;; @param {String} target_table
+;; @param {String} field_photo
 ;;
-(def-fn utils:remove-photo fieldId id targetTable fieldPhoto
+(def-fn utils:remove-photo field_id id target_table field_photo
 
-    (set old_photo (db:scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = ?` (id)))
+    (set old_photo (db:scalar `SELECT {field_photo} FROM {target_table} WHERE {field_id} = ?` (id)))
     (if (not-null? (old_photo))
         (file:remove (old_photo)))
 
-    (db:exec `UPDATE {targetTable} SET {fieldPhoto} = NULL WHERE {fieldId} = ?` (id))
+    (db:exec `UPDATE {target_table} SET {field_photo} = NULL WHERE {field_id} = ?` (id))
 )
+
 
 ;;
 ;; Updates the photo path in a record in the database and removes the old photo if exists. The image will
@@ -22,24 +23,24 @@
 ;; height is specified, the image will be resized to fit the specified width or height, respectively.
 ;;
 ;; @param {File} formFile
-;; @param {String} fieldId
+;; @param {String} field_id
 ;; @param {String} id
-;; @param {String} targetTable
-;; @param {String} fieldPhoto
+;; @param {String} target_table
+;; @param {String} field_photo
 ;; @param {Number} width
 ;; @param {Number} [height]
 ;;
-(def-fn utils:update-photo formFile fieldId id targetTable fieldPhoto width height=0
+(def-fn utils:update-photo formFile field_id id target_table field_photo width height=0
 
     (when (null? (formFile))
         (ret))
 
     (set new_photo (image:load (formFile.path)))
-    (set old_photo (db:scalar `SELECT {fieldPhoto} FROM {targetTable} WHERE {fieldId} = ?` (id)))
+    (set old_photo (db:scalar `SELECT {field_photo} FROM {target_table} WHERE {field_id} = ?` (id)))
     (if (not-null? (old_photo))
         (file:remove (old_photo)))
 
-    (set target "storage/(str:replace '#' '' (targetTable))/(id)_(math:rand).png")
+    (set target "storage/(str:replace '#' '' (target_table))/(id)_(math:rand).png")
 
     (set new_photo (? (and (width) (height))
         (image:smartcut (new_photo) (width) (height) "CENTER" "CENTER" true)
@@ -47,8 +48,42 @@
     ))
 
     (file:write (target) (image:data (new_photo) "png"))
-    (db:exec `UPDATE {targetTable} SET {fieldPhoto} = ? WHERE {fieldId} = ?` (target) (id))
+    (db:exec `UPDATE {target_table} SET {field_photo} = ? WHERE {field_id} = ?` (target) (id))
 )
+
+
+;;
+;; Updates the photo path in a record in the database and removes the old photo if exists. The image will
+;; be resized to the specified width and height (smartcut). Or if only one or the other of width and
+;; height is specified, the image will be resized to fit the specified width or height, respectively.
+;;
+;; @param {Image} new_photo
+;; @param {String} id
+;; @param {String} target_table
+;; @param {String} field_photo
+;; @param {Number} width
+;; @param {Number} [height]
+;;
+(def-fn utils:update-photo-image new_photo field_id id target_table field_photo width height=0
+
+    (when (null? (new_photo))
+        (ret))
+
+    (set oldPhoto (db:scalar `SELECT {field_photo} FROM {target_table} WHERE {field_id} = ?` (id)))
+    (if (not-null? (oldPhoto))
+        (file:remove (oldPhoto)))
+
+    (set target "storage/(str:replace '#' '' (target_table))/(id)_(math:rand).png")
+
+    (set new_photo (? (and (width) (height))
+        (image:smartcut (new_photo) (width) (height) "CENTER" "CENTER")
+        (image:fit (new_photo) (width) (height))
+    ))
+
+    (file:write (target) (image:data (new_photo) "png"))
+    (db:exec `UPDATE {target_table} SET {field_photo} = ? WHERE {field_id} = ?` (target) (id))
+)
+
 
 ;;
 ;; Returns the URL of the picture. If the picture does not exist, returns the URL of the default image.
