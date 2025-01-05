@@ -5,5 +5,4 @@ vendor/
 *.tmp
 volatile/
 storage/
-composer.lock
 logs/

@@ -18,6 +18,7 @@
 (set conf (config:parse (file:read "conf/db-version.conf")))
 (when-not (conf.database) (set conf.database (&)))
 
+;; TODO: Move to a common file.
 ;; Load list of patches with prefix "db-".
 (set patches (array:sort 
     (map (filter (dir:files "conf/database") (and (ends-with? ".sql" (i.name)) (starts-with? "db-" (i.name))))
@@ -25,8 +26,8 @@
     (str:compare (a.version) (b.version))
 ))
 
-(set db_time (locale:iso-datetime (datetime:parse (db:scalar `SELECT NOW()`))))
 (set srv_time (locale:iso-datetime (datetime:now)))
+(set db_time (locale:iso-datetime (datetime:parse (db:scalar `SELECT NOW()`))))
 
 (&
     databaseTime (db_time)

@@ -8,13 +8,13 @@ BEGIN
     (assert (ge? (len (version)) 5) "Version is too short")
 
     ;; Check if there are no changes to deploy.
-    (assert (ne? (version) (file:read "VERSION.txt")) "(clr 97)No new version found to deploy(clr 0)")
+    (assert (ne? (version) (file:read "VERSION")) "(clr 97)No new version found to deploy(clr 0)")
     (set-var NEW_VERSION (version))
 END
 
 ECHO {clr 92}Commiting ...{clr 0}
     r0 {NEW_VERSION}
-    WRITE VERSION.txt
+    WRITE VERSION
     RUN git add .
     RUN git commit -m "{coalesce {args.0} 'v{NEW_VERSION}'}"
 

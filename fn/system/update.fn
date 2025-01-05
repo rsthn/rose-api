@@ -11,35 +11,29 @@
     )
 ))
 
+(import "lib/deploy")
+
 (set file "conf/scripts/pull")
 (when-not (path:exists (file))
     (throw "Update script not found: conf/scripts/pull"))
 
 (gateway:header "content-type: text/html")
+(gateway:persistent)
+(echo "<pre>")
 
 ;; *********************
-(set cur_db_version_hash (crypto:hash "sha1" (file:read "conf/db-version.conf")))
+(echo "<b>🥗 Running update script...</b>\n")
+(execute (file))
+(echo "")
 
-(echo "📢 Updating files...")
-(echo "<pre>" (html-text:encode (sys:shell "rose :deploy (file)")) "</pre>")
-(echo "<br/>")
+;;; Check database version.
 
-(set new_db_version_hash (crypto:hash "sha1" (file:read "conf/db-version.conf")))
-
-(when (eq? (cur_db_version_hash) (new_db_version_hash))
-    (echo "✅ Database structure is up to date.")
-    (stop)
-)
-
-;; *********************
-(echo "📢 Updating database ...<br/>")
-
-;; Load environment configuration file.
+;; TODO: Move to a common file.
 (when-not (path:exists "conf/db-version.conf")
     (file:write "conf/db-version.conf" ""))
 
 (set conf (config:parse (file:read "conf/db-version.conf")))
-(when-not (conf.database) (set conf.database (&)))
+(when-not (conf.database) (set conf.database { version "0000" }))
 
 ;; Load list of patches with prefix "db-".
 (set patches (array:sort 
@@ -47,6 +41,14 @@
         (& name (i.name) path (i.path) version (array:at 1 (split "-" (i.name))) ))
     (str:compare (a.version) (b.version))
 ))
+
+(when (ge? (str:compare (conf.database.version) ((array:last (patches)).version)) 0)
+    (echo "<b>✅ Database structure is up to date \((conf.database.version)\).</b>")
+    (stop)
+)
+
+;; *********************
+(echo "<b>📢 Updating database ...</b>")
 
 ;; 
 (def-fn firstline value
@@ -95,5 +97,5 @@
 
 (when-not (failed)
     (db:exec "COMMIT")
-    (echo "🎉 Database is up to date!")
+    (echo "<b>🎉 Database is up to date!</b>")
 )

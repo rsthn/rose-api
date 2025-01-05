@@ -2,6 +2,7 @@
 
 # Configuration variables.
 SOURCE git_repository_url
+#SOURCE https://{env:get GITHUB_USER}:{env:get GITHUB_PASS}@github.com/repo-user/repo-name
 ENV_VAR ROSE_ENV
 
 # General validation.
@@ -15,6 +16,14 @@ IF {not {env:get {ENV_VAR}}}
     FAIL Environment variable {clr 96}{ENV_VAR}{clr 0} is not set.
 END-IF
 
+#IF {not {env:get GITHUB_USER}}
+#    FAIL Environment variable GITHUB_USER not set.
+#END-IF
+
+#IF {not {env:get GITHUB_PASS}}
+#    FAIL Environment variable GITHUB_PASS not set.
+#END-IF
+
 IF {not {path:exists {path:append "conf" "{env:get {ENV_VAR}}.conf"}}}
     FAIL Configuration file {clr 96}conf/{env:get {ENV_VAR}}.conf{clr 0} does not exist.
 END-IF
@@ -26,6 +35,12 @@ END-IF
 # Pull code from repository into temporal dir.
 TEMP {path:append {path:cwd} tmp}
 EXEC git clone "{SOURCE}" "{TEMP}"
+
+# Get commit hash.
+PUSHD
+CHDIR {TEMP}
+COMMIT {re:get `/commit ([A-Fa-f0-9]+)/` {sys:shell "git log -n 1"} 1}
+POPD
 
 # Copy files from temporal dir.
 ECHO 🧪 Updating ...
@@ -45,9 +60,6 @@ DIRCOPY lib
 r0 {TEMP}/strings
 DIRCOPY strings
 
-r0 {TEMP}/vendor
-DIRCOPY vendor
-
 r0 {TEMP}/periodic.php
 COPY .
 
@@ -57,14 +69,33 @@ COPY .
 r0 {TEMP}/composer.lock
 COPY .
 
+# Clean front-end folder and copy front-end distribution folder.
+#RMDIR ../img
+#CLEAN ..
+#r0 {TEMP}/redist
+#DIRCOPY ..
+
+# Configure.
+ECHO 🧪 Setting environment <b>{env:get {ENV_VAR}}</b> ...
 r0 {env:get {ENV_VAR}}
 WRITE rose-env
+
+r0 {COMMIT}
+WRITE COMMIT
 
 # Clean temporal folder.
 RMDIR {TEMP}
 
-# Install composer dependencies.
-ECHO 🧪 Running composer install ...
-EXEC composer install
+# Install dependencies.
+ECHO
+ECHO 🧪 Current packages:
+EXEC composer show
 
-ECHO ✨ Pulled: v{{json:parse {file:read "composer.json"}}.version}
+ECHO 🧪 Updating packages ...
+EXEC composer install
+EXEC composer show
+
+# Completed.
+ECHO
+ECHO 🎫 Commit: {file:read COMMIT}
+ECHO ✨ Upgraded to version: {file:read "VERSION"}
