@@ -1,3 +1,12 @@
+# v2.0.23 - Feb 04 2025
+
+#### QoL
+- Updated `deploy` lib to support `EVAL`.
+- Updated `pull` and `release` scripts.
+- Patched database update script to revert back (rollback) if the update fails.
+
+<br/>
+
 # v2.0.22 - Jan 05 2025
 
 #### QoL
