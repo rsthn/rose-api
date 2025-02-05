@@ -13,7 +13,8 @@ IF {not {path:exists "rose-env"}}
 END-IF
 
 IF {not {env:get {ENV_VAR}}}
-    FAIL Environment variable {clr 96}{ENV_VAR}{clr 0} is not set.
+    ECHO Environment variable <b>{ENV_VAR}</b> is not set. Using <b>prod</b> as default.
+    EVAL {env:set "{ENV_VAR}=prod"}
 END-IF
 
 #IF {not {env:get GITHUB_USER}}
@@ -25,7 +26,7 @@ END-IF
 #END-IF
 
 IF {not {path:exists {path:append "conf" "{env:get {ENV_VAR}}.conf"}}}
-    FAIL Configuration file {clr 96}conf/{env:get {ENV_VAR}}.conf{clr 0} does not exist.
+    FAIL Configuration file <b>conf/{env:get {ENV_VAR}}.conf</b> does not exist.
 END-IF
 
 IF {eq? "git_repository_url" {SOURCE}}
@@ -34,6 +35,7 @@ END-IF
 
 # Pull code from repository into temporal dir.
 TEMP {path:append {path:cwd} tmp}
+RMDIR {TEMP}
 EXEC git clone "{SOURCE}" "{TEMP}"
 
 # Get commit hash.
@@ -45,7 +47,7 @@ POPD
 # Copy files from temporal dir.
 ECHO 🧪 Updating ...
 
-DEL {TEMP}/conf/prod.conf
+DEL {TEMP}/conf/{env:get {ENV_VAR}}.conf
 DEL {TEMP}/conf/db-version.conf
 
 r0 {TEMP}/conf
@@ -66,7 +68,10 @@ COPY .
 r0 {TEMP}/composer.json
 COPY .
 
-r0 {TEMP}/composer.lock
+#r0 {TEMP}/composer.lock
+#COPY .
+
+r0 {TEMP}/VERSION
 COPY .
 
 # Clean front-end folder and copy front-end distribution folder.

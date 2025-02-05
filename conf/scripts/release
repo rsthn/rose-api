@@ -75,7 +75,7 @@ END
 IF {eq? 0 {len {args}}}
     COMMIT_MSG v{VERSION}
 ELSE
-    COMMIT_MSG {args.0\nv{VERSION}
+    COMMIT_MSG {args.0}\nv{VERSION}
 END-IF
 
 ECHO 📢 Pushing to git ...

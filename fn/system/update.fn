@@ -89,13 +89,13 @@
     (set conf.database.version (patch.version))
 )
 
-;; Save latest known correct version stored.
-(file:write "conf/db-version.conf" (config:str (conf)))
 
 (when (failed)
     (db:exec "ROLLBACK"))
 
+;; Save latest known correct version stored.
 (when-not (failed)
+    (file:write "conf/db-version.conf" (config:str (conf)))
     (db:exec "COMMIT")
     (echo "<b>🎉 Database is up to date!</b>")
 )
