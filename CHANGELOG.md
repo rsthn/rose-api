@@ -1,3 +1,12 @@
+# v2.0.24 - Feb 28 2025
+
+#### QoL
+- Added `Containerfile` to create podman containers.
+- Added example `endpoints` section in `system.conf` to use custom endpoints (Rose 5.0.26)
+- Updated dependencies.
+
+<br/>
+
 # v2.0.23 - Feb 04 2025
 
 #### QoL
