@@ -6,3 +6,4 @@ vendor/
 volatile/
 storage/
 logs/
+db-version.conf
