@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "rsthn/rose-core",
-            "version": "v5.0.25",
+            "version": "v5.0.27",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rsthn/rose-core.git",
-                "reference": "0bc938112b2b95ed64e7ca3fda0968ca343430b0"
+                "reference": "c7ad28aef0f84cca0dde5b9ba9aa141e2752aba4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rsthn/rose-core/zipball/0bc938112b2b95ed64e7ca3fda0968ca343430b0",
-                "reference": "0bc938112b2b95ed64e7ca3fda0968ca343430b0",
+                "url": "https://api.github.com/repos/rsthn/rose-core/zipball/c7ad28aef0f84cca0dde5b9ba9aa141e2752aba4",
+                "reference": "c7ad28aef0f84cca0dde5b9ba9aa141e2752aba4",
                 "shasum": ""
             },
             "require": {
@@ -44,9 +44,9 @@
             "homepage": "https://github.com/rsthn/rose-core",
             "support": {
                 "issues": "https://github.com/rsthn/rose-core/issues",
-                "source": "https://github.com/rsthn/rose-core/tree/v5.0.25"
+                "source": "https://github.com/rsthn/rose-core/tree/v5.0.27"
             },
-            "time": "2025-02-19T03:49:03+00:00"
+            "time": "2025-03-22T07:53:16+00:00"
         },
         {
             "name": "rsthn/rose-ext-sentinel",
@@ -94,16 +94,16 @@
         },
         {
             "name": "rsthn/rose-ext-shield",
-            "version": "v2.0.17",
+            "version": "v2.0.18",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rsthn/rose-ext-shield.git",
-                "reference": "21b93885e601257e7fb4fd86c54bd14637cfd6a5"
+                "reference": "86c3c704de42a84929307ebaae726e98c573e8a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rsthn/rose-ext-shield/zipball/21b93885e601257e7fb4fd86c54bd14637cfd6a5",
-                "reference": "21b93885e601257e7fb4fd86c54bd14637cfd6a5",
+                "url": "https://api.github.com/repos/rsthn/rose-ext-shield/zipball/86c3c704de42a84929307ebaae726e98c573e8a3",
+                "reference": "86c3c704de42a84929307ebaae726e98c573e8a3",
                 "shasum": ""
             },
             "require": {
@@ -132,9 +132,9 @@
             "description": "Shield Validation Extension",
             "support": {
                 "issues": "https://github.com/rsthn/rose-ext-shield/issues",
-                "source": "https://github.com/rsthn/rose-ext-shield/tree/v2.0.17"
+                "source": "https://github.com/rsthn/rose-ext-shield/tree/v2.0.18"
             },
-            "time": "2024-12-20T11:20:47+00:00"
+            "time": "2025-03-22T07:50:32+00:00"
         },
         {
             "name": "rsthn/rose-extension-installer",
