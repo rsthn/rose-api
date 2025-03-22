@@ -1,3 +1,12 @@
+# v2.0.25 - Mar 22 2025
+
+#### QoL
+- Added db-version.conf to .gitignore to prevent db out-of-sync issues.
+- Deleted db-version.conf from repository.
+- Updated dependencies.
+
+<br/>
+
 # v2.0.24 - Feb 28 2025
 
 #### QoL
