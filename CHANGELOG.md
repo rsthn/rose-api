@@ -1,3 +1,10 @@
+# v3.0.0 - Jan 10 2026
+
+#### QoL
+- Upgraded to Shield v3 and updated API functions.
+
+<br/>
+
 # v2.0.26 - Jan 10 2026
 
 #### General
