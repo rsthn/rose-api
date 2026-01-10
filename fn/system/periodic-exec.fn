@@ -3,7 +3,7 @@
 
 (import "lib/directives")
 
-(shield:validate-data input (gateway.request) (object
+(shield:model "input" (object
     task (rules
         required true
         min-length 4
@@ -11,6 +11,8 @@
         pattern identifier
     )
 ))
+
+(shield:validate input (gateway.request) "input")
 
 (gateway:header "content-type: text/html")
 (gateway:persistent)

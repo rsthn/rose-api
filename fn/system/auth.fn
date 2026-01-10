@@ -4,7 +4,7 @@
 ;; Gate keeper.
 (shield:method-required "GET")
 
-(shield:validate-data input (gateway.request) (object
+(shield:model "auth" (object
     token (rules
         required (ne? "" (config.system.token))
         min-length 8
@@ -13,6 +13,8 @@
         check:@invalid_token (eq? (config.system.token) ($))
     )
 ))
+
+(shield:validate input (gateway.request) "auth")
 
 ;; Returns the first line of a text string.
 (def-fn firstline value

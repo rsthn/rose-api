@@ -1,14 +1,16 @@
 
 (include "./auth")
 
-(shield:validate
-    (shield:field email
+(shield:model "input" (object
+    email (rules
         required true
         pattern email
     )
-)
+))
 
-(mail::send
+(shield:validate input (gateway.request) "input")
+
+(mail:send
     rcpt (email)
     subject "🧪 Test Email"
     body "Hi! This is a test email."
