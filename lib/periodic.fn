@@ -2,56 +2,54 @@
 (import "lib/directives")
 
 (if (ne? (config.periodic.enabled) "true")
-    (throw "not enabled"))
+    (throw "periodic tasks not enabled"))
 
 (if (not (path:exists "conf/periodic"))
     (throw "folder `conf/periodic` does not exist"))
 
-(set now (str (datetime:now)))
+(set now (datetime:now))
 
-(if (dve:exists "periodic/last")
-    (set delta (datetime:diff (now) (dve:get-str "periodic/last")))
-     (if (lt? (delta) (config.periodic.interval))
-        (throw "interval not reached \((- (config.periodic.interval) (delta)) seconds remaining\)"))
+(if (dve:exists "periodic_last")
+    (set periodic_last (dve:get-str "periodic_last"))
+    (when (periodic_last)
+        (set delta (datetime:diff (now) (periodic_last)))
+        (if (lt? (delta) (config.periodic.interval))
+            (throw "interval not reached \((- (config.periodic.interval) (delta)) seconds remaining\)"))
+    )
 )
 
-(if (eq? (dve:get-int "periodic/last") 1)
-    (throw "already running"))
+(if (eq? (dve:get-int "periodic_last") 1)
+    (throw "periodic tasks already running"))
 
-(dve:set-int "periodic/last" 1)
-(dve:set-str "periodic/last" (now))
+(dve:set-int "periodic_last" 1)
+(dve:set-str "periodic_last" (locale:datetime "%Y-%m-%d %H:%M:00" (now)))
 
 (gateway:persistent)
 
-(for subject (dve:get-all "periodic/task")
+(for task (dve:get-all "periodic_tasks")
 
-    (set info (dve:get-obj "periodic/task" (subject)))
-    (when-not (info) (set info (&)))
-    (when-not (info.next_at) (set info.next_at (now)))
-    (when-not (info.runs) (set info.runs 0))
-
+    (set info (dve:get-obj "periodic_tasks" (task)))
     (when-not (info.period)
         (continue))
 
-    (when (lt? (str:compare (now) (info.next_at)) 0)
+    (set delta (datetime:sub (info.next_at) (now)))
+    (when (gt? (delta) 0)
         (continue))
 
-    (while (ge? (str:compare (now) (info.next_at)) 0)
-        (set info.next_at (str (datetime:add (info.next_at) (info.period) "seconds"))))
-
     (inc info.runs)
-    (dve:set-obj "periodic/task" (info) (subject))
+    (set info.next_at (datetime:add
+                          (info.next_at)
+                          (* (info.period) (math:ceil (/ (neg (delta)) (info.period))))
+                      ))
+    (dve:set-obj "periodic_tasks" (info) (task))
 
-	(try
-		(eval (file:read "conf/periodic/(subject).fn"))
-	catch
-		(echo "[ERROR] [(now)] (subject): (err)")
-		(trace-alt "periodic" "[ERROR] [(now)] (subject): (err)")
-	)
+    (try
+        (eval (file:read "conf/periodic/(task).fn"))
+    catch
+        (echo "[ERROR] [(now)] (task): (err)")
+        (trace-alt "periodic" "[ERROR] [(now)] (task): (err)")
+    )
 )
 
-
-(dve:set-int "periodic/count" (+ 1 (dve:get-int "periodic/count")))
-(dve:set-int "periodic/last" 0)
-
-(&)
+(dve:set-int "periodic_count" (+ 1 (dve:get-int "periodic_count")))
+(dve:set-int "periodic_last" 0)

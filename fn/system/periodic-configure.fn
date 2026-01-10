@@ -1,0 +1,45 @@
+
+(include "./auth")
+
+(import "lib/directives")
+
+(gateway:header "content-type: text/html")
+
+(echo `<div style="display:inline-block; margin:1rem; padding:0.8rem 1.2rem; border-radius:0.5rem; border:1px solid #aaa;">`)
+(echo "⏰ Now: (datetime:now)<br/><br/>")
+
+(set tasks (dve:get-all "periodic_tasks"))
+(for task:task_config (config.periodic_tasks)
+
+    (set task_config (json:parse (task_config)))
+    (set task_config.runs 0)
+    (set next_at (datetime:parse (task_config.next_at)))
+
+    (set index (array:index (tasks) (task)))
+    (when-not (null? (index))
+        (set new_task_config (dve:get-obj "periodic_tasks" (task)))
+        (set new_task_config.period (task_config.period))
+        (set task_config (new_task_config))
+        (array:remove (tasks) (index))
+    )
+
+    (set delta (datetime:sub (next_at) (datetime:now)))
+    (lt? (delta) 0
+        (set next_at (datetime:add
+                        (next_at)
+                        (* (task_config.period) (math:ceil (/ (neg (delta)) (task_config.period))))
+                     ))
+    )
+
+    (set task_config.next_at (next_at))
+    (echo "⭕ Task: <b>(task)</b>, every <b>(task_config.period) seconds</b>, next at: (task_config.next_at)<br/>")
+    (dve:set-obj "periodic_tasks" (task_config) (task))
+)
+
+(for task (tasks)
+    (echo "🔻 Deleted: <b>(task)</b><br/>")
+    (dve:delete "periodic_tasks" (task))
+)
+
+(echo "<br/>✨ Periodic config completed<br/>")
+(echo "</div>")

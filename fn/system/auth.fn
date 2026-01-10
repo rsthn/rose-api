@@ -1,0 +1,111 @@
+
+(import "lib/directives")
+
+;; Gate keeper.
+(shield:method-required "GET")
+
+(shield:validate-data input (gateway.request) (object
+    token (rules
+        required (ne? "" (config.system.token))
+        min-length 8
+        max-length 256
+        pattern identifier
+        check:@invalid_token (eq? (config.system.token) ($))
+    )
+))
+
+;; Returns the first line of a text string.
+(def-fn firstline value
+    (array:first (split "\n" (value)))
+)
+
+;; Executes one or more queries from a SQL script. Delimiter is `;` by default or `;;` if found in the script.
+;; @returns obj<status:bool, report:array<str>>
+(def-fn db_run_script sql_script
+
+    ;; Remove multi-line and single-line comments.
+    (set sql_script (re:replace "|/\*.*?\*/|s" "" (sql_script)))
+    (set sql_script (re:replace "|--.*|" "" (sql_script)))
+
+    ;; Execute each query and record the completion status.
+    (set success true)
+    (set report [])
+
+    (for query (filter i (map k (split (? (in? (sql_script) ";;") ";;" ";") (sql_script)) (trim (k))) (ne? "" (i)))
+        (try
+            (db:exec (query))
+            (array:push (report) (concat "\t✅ " (firstline (query))))
+        catch
+            (array:push (report) (concat "\t⛔ " (firstline (query)) "\n\t💥 " (str:replace "\n" "\n\t\t" (err))))
+            (set success false)
+            (break)
+        )
+    )
+
+    {
+        success (success)
+        report (report)
+    }
+)
+
+;; Loads the database status from `db_status` directive. If the directives table doesn't exist this
+;; will run special script `conf/database/db-0000.sql` to create the initial tables.
+(def-fn db_status_load
+
+    (try
+        (set status (dve:get-obj "db_status"))
+
+    catch
+        (set result (db_run_script (file:read "conf/database/db-0000.sql")))
+        (when (result.success)
+            (try
+                (set status (dve:get-obj "db_status"))
+            catch
+                (set result.success false)
+                (set result.report (err))
+            )
+        )
+
+        (when-not (result.success)
+            (gateway:return 500 {
+                error "Unable to run required script db-0000.sql"
+                details (result.report)
+            })
+        )
+    )
+
+    (when-not (status)
+        (set status {
+            version "0000"
+            patches [
+                "0000"
+            ]
+        })
+    )
+
+    (status)
+)
+
+;; Saves the database configuration to a directive.
+(def-fn db_status_save status
+    (dve:set-obj "db_status" (status))
+)
+
+;; Returns a list of available database patches that have not been applied yet.
+(def-fn db_available_patches db_status
+
+    (set patches (array:sort
+        (map (filter (dir:files "conf/database") (and (ends-with? ".sql" (i.name)) (starts-with? "db-" (i.name))))
+            { 
+                name (i.name)
+                path (i.path)
+                version (array:at 1 (split "-" (str:sub 0 -4 (i.name))))
+            }
+        )
+        (str:compare (a.version) (b.version))
+    ))
+
+    (filter x (patches)
+        (not-in? (db_status.patches) (x.version))
+    )
+)

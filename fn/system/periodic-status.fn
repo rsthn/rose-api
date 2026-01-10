@@ -1,19 +1,14 @@
 
-(shield:validate
-    (shield:field token
-        required true
-        pattern identifier
-        check:invalid-token (eq? (config.system.token) ($))
-    )
-)
+(include "./auth")
 
 (import "lib/directives")
 
-(&
-    enabled (eq (config.periodic.enabled) "true")
-    interval (config.periodic.interval)
-    folder-exists (path:exists "conf/periodic")
-    last-run (dve:get-str "periodic/last")
-    total-runs (dve:get-int "periodic/count")
-    running (dve:get-int "periodic/last")
-)
+{
+    enabled (eq? (config.periodic.enabled) "true")
+    interval (int (config.periodic.interval))
+    folder_exists (path:exists "conf/periodic")
+    last_run (dve:get-str "periodic_last")
+    total_runs (dve:get-int "periodic_count")
+    running (dve:get-int "periodic_last")
+    tasks (dve:get-all "periodic_tasks")
+}

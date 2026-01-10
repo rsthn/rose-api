@@ -9,8 +9,8 @@ CREATE TABLE directives
     , textval TEXT
     , PRIMARY KEY (subject_id, type)
 );
-CREATE INDEX directives_subject_id ON directives (subject_id);
-CREATE INDEX directives_type ON directives (type);
+CREATE INDEX directives__subject_id ON directives (subject_id);
+CREATE INDEX directives__type ON directives (type);
 
 --------------------------------------------------------------------------------
 CREATE TABLE users
@@ -20,16 +20,16 @@ CREATE TABLE users
     , deleted_at TIMESTAMP
     , blocked_at TIMESTAMP
     , username VARCHAR(256) NOT NULL
-    , password VARCHAR(96) NOT NULL
+    , password VARCHAR(128) NOT NULL /* Salted SHA512 */
 
     , name VARCHAR(256) NOT NULL
     , email VARCHAR(256)
-    , photo VARCHAR(256)
+    , photo VARCHAR(128)
 );
-CREATE INDEX users_created_at ON users (created_at);
-CREATE INDEX users_deleted_at ON users (deleted_at);
-CREATE INDEX users_blocked_at ON users (blocked_at);
-CREATE UNIQUE INDEX users_username ON users (username) WHERE deleted_at IS NULL;
+CREATE INDEX users__deleted_at ON users (deleted_at);
+CREATE INDEX users__created_at ON users (created_at) WHERE (deleted_at IS NULL);
+CREATE INDEX users__blocked_at ON users (blocked_at) WHERE (deleted_at IS NULL);
+CREATE UNIQUE INDEX users__username ON users (username) WHERE (deleted_at IS NULL);
 
 --------------------------------------------------------------------------------
 CREATE TABLE permissions
@@ -38,7 +38,10 @@ CREATE TABLE permissions
     , deleted_at TIMESTAMP
     , name VARCHAR(128) NOT NULL
 );
-CREATE UNIQUE INDEX permissions_name ON permissions (name) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX permissions__name ON permissions (name) WHERE (deleted_at IS NULL);
+
+-- *
+INSERT INTO permissions (name) VALUES ('plat:master');
 
 --------------------------------------------------------------------------------
 CREATE TABLE user_permissions
@@ -48,7 +51,7 @@ CREATE TABLE user_permissions
     , flag SMALLINT DEFAULT 0
     , PRIMARY KEY (user_id, permission_id)
 );
-CREATE INDEX user_permissions_flag ON user_permissions (user_id, flag);
+CREATE INDEX user_permissions__flag ON user_permissions (user_id, flag);
 
 --------------------------------------------------------------------------------
 CREATE TABLE tokens
@@ -57,13 +60,14 @@ CREATE TABLE tokens
     , created_at TIMESTAMP NOT NULL DEFAULT NOW()
     , deleted_at TIMESTAMP
     , blocked_at TIMESTAMP
-    , user_id BIGINT NOT NULL
+    , user_id BIGINT NOT NULL REFERENCES users (user_id)
     , token VARCHAR(128) NOT NULL
     , name VARCHAR(128) NOT NULL
-    , FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
-CREATE INDEX tokens_user_id ON tokens (user_id, deleted_at);
-CREATE UNIQUE INDEX tokens_token ON tokens (token);
+CREATE INDEX tokens__deleted_at ON tokens (deleted_at);
+CREATE INDEX tokens__user_id ON tokens (user_id) WHERE (deleted_at IS NULL);
+CREATE UNIQUE INDEX tokens__token ON tokens (token) WHERE (deleted_at IS NULL);
+
 
 --------------------------------------------------------------------------------
 CREATE TABLE token_permissions
@@ -73,7 +77,7 @@ CREATE TABLE token_permissions
     , flag SMALLINT DEFAULT 0
     , PRIMARY KEY (token_id, permission_id)
 );
-CREATE INDEX token_permissions_flag ON token_permissions (token_id, flag);
+CREATE INDEX token_permissions__flag ON token_permissions (token_id, flag);
 
 --------------------------------------------------------------------------------
 CREATE TABLE devices
@@ -88,7 +92,7 @@ CREATE TABLE devices
     , token VARCHAR(512) NOT NULL
     , secret VARCHAR(512) DEFAULT NULL
 );
-CREATE UNIQUE INDEX devices_token ON devices (token);
+CREATE UNIQUE INDEX devices__token ON devices (token);
 
 --------------------------------------------------------------------------------
 CREATE TABLE sessions
@@ -98,9 +102,10 @@ CREATE TABLE sessions
     , last_activity TIMESTAMP
     , device_id BIGINT REFERENCES devices (device_id) ON DELETE CASCADE
     , user_id BIGINT REFERENCES users (user_id) ON DELETE CASCADE
-    , data VARCHAR(8192)
+    , data TEXT
 );
-CREATE INDEX sessions_device_id ON sessions (device_id);
+CREATE INDEX sessions__device_id ON sessions (device_id);
+CREATE INDEX sessions__user_id ON sessions (user_id);
 
 --------------------------------------------------------------------------------
 CREATE TABLE suspicious_identifiers

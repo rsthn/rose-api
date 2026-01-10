@@ -1,0 +1,33 @@
+
+(include "./auth")
+
+(set status (db_status_load))
+(set patches (db_available_patches (status)))
+
+(set status_report [])
+(set last_message "🎉 Database is up to date!")
+
+(for patch (patches)
+    (array:push (status_report) "🧪 Applying patch <b>(patch.name)</b>")
+
+    (db:exec "BEGIN")
+    (set result (db_run_script (file:read (patch.path))))
+    (array:append (status_report) (result.report))
+    (when-not (result.success)
+        (set last_message "🚨 Unable to update database to the latest version.")
+        (db:exec "ROLLBACK")
+        (break))
+    (db:exec "COMMIT")
+
+    (array:push (status.patches) (patch.version))
+    (set status.version (patch.version))
+    (db_status_save (status))
+)
+
+(array:push (status_report) (last_message))
+
+(gateway:header "Content-Type: text/html")
+(str:replace "\n" "<br/>"
+    (str:replace "\t" "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+        (join "\n" (status_report)))
+)

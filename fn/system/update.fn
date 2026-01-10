@@ -1,15 +1,5 @@
 
-(shield:method-required "GET")
-
-(shield:validate-data input (gateway.request) (object
-    token (rules
-        required true
-        min-length 8
-        max-length 256
-        pattern identifier
-        check:@invalid_token (eq? (config.system.token) ($))
-    )
-))
+(include "./auth")
 
 (import "lib/deploy")
 
@@ -19,83 +9,8 @@
 
 (gateway:header "content-type: text/html")
 (gateway:persistent)
-(echo "<pre>")
 
-;; *********************
+(echo "<pre>")
 (echo "<b>🥗 Running update script...</b>\n")
 (execute (file))
-(echo "")
-
-;;; Check database version.
-
-;; TODO: Move to a common file.
-(when-not (path:exists "conf/db-version.conf")
-    (file:write "conf/db-version.conf" ""))
-
-(set conf (config:parse (file:read "conf/db-version.conf")))
-(when-not (conf.database) (set conf.database { version "0000" }))
-
-;; Load list of patches with prefix "db-".
-(set patches (array:sort 
-    (map (filter (dir:files "conf/database") (and (ends-with? ".sql" (i.name)) (starts-with? "db-" (i.name))))
-        (& name (i.name) path (i.path) version (array:at 1 (split "-" (i.name))) ))
-    (str:compare (a.version) (b.version))
-))
-
-(when (ge? (str:compare (conf.database.version) ((array:last (patches)).version)) 0)
-    (echo "<b>✅ Database structure is up to date \((conf.database.version)\).</b>")
-    (stop)
-)
-
-;; *********************
-(echo "<b>📢 Updating database ...</b>")
-
-;; 
-(def-fn firstline value
-    (array:first (split "\n" (value)))
-)
-
-(set failed false)
-(db:exec "BEGIN")
-
-(for patch (patches)
-
-    (when (and (not-null? (conf.database.version)) (le? (str:compare (patch.version) (conf.database.version)) 0))
-        (echo "🔥 Skipping patch <b>(patch.name)</b>")
-        (continue)
-    )
-
-    ;; Load patch file and remove comments.
-    (echo "🧪 Importing patch <b>(patch.name)</b>")
-    (set query (file:read (patch.path)))
-    (set query (re:replace "|/\*.*?\*/|s" "" (query)))
-    (set query (re:replace "|--.*|" "" (query)))
-
-    ;; Execute each query and record the completion status.
-    (set failed false)
-    (for query (filter i (map k (split (? (in? (query) ";;") ";;" ";") (query)) (trim (k))) (ne? "" (i)))
-        (try
-            (db:exec (query))
-            (echo (concat "\t✅ " (firstline (query))))
-        catch
-            (echo (concat "\t⛔ " (firstline (query)) "\n\t💥 " (str:replace "\n" "\n\t\t" (err))))
-            (set failed true)
-            (break)
-        )
-    )
-
-    ;; Stop if a patch query failed.
-    (when (failed) (break))
-    (set conf.database.version (patch.version))
-)
-
-
-(when (failed)
-    (db:exec "ROLLBACK"))
-
-;; Save latest known correct version stored.
-(when-not (failed)
-    (file:write "conf/db-version.conf" (config:str (conf)))
-    (db:exec "COMMIT")
-    (echo "<b>🎉 Database is up to date!</b>")
-)
+(echo "</pre>")

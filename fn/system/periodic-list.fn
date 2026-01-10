@@ -1,21 +1,7 @@
 
-(shield:method-required "GET")
-
-(shield:validate-data input (gateway.request) (object
-    token (rules
-        required true
-        min-length 8
-        max-length 256
-        pattern identifier
-        check:@invalid_token (eq? (config.system.token) ($))
-    )
-))
+(include "./auth")
 
 (import "lib/directives")
-
-(gateway:header "content-type: text/html")
-
-(set now (datetime:now))
 
 (def-fn elapsed dtt1 dtt2
     (set value (datetime:sub (dtt2) (dtt1)))
@@ -31,11 +17,23 @@
     (ret "(locale:number '.1,' (value)) days")
 )
 
-(for task (dve:get-all "periodic/task")
+(gateway:header "content-type: text/html")
+(echo `<div style="display:inline-block; margin:1rem; padding:0.8rem 1.2rem; border-radius:0.5rem; border:1px solid #aaa;">`)
+(echo "⏰ Now: (datetime:now)<br/><br/>")
+
+(set now (datetime:now))
+(set first true)
+
+(for task (dve:get-all "periodic_tasks")
+    (when-not (first)
+        (echo "<br/>"))
+    (set first false)
+
     (echo "<b>🌠 (task)</b><br/>")
-    (set info (dve:get-obj "periodic/task" (task)))
-    (echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next_at = (info.next_at) \(in (elapsed (now) (info.next_at))\)<br/>")
-    (echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;period = (info.period)<br/>")
-    (echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runs = (info.runs)<br/>")
-    (echo "<br/>")
+    (set info (dve:get-obj "periodic_tasks" (task)))
+    (echo "next_at = " (info.next_at) " \(in " (elapsed (now) (info.next_at)) "\)<br/>")
+    (echo "period = " (info.period) "<br/>")
+    (echo "runs = " (or (info.runs) "None so far") "<br/>")
 )
+
+(echo "</div>")
