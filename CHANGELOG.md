@@ -1,3 +1,11 @@
+# v2.0.26 - Jan 10 2026
+
+#### General
+- Changed default db config to use postgres.
+- Updated system API functions (system/*) and periodic handler.
+
+<br/>
+
 # v2.0.25 - Mar 22 2025
 
 #### QoL
