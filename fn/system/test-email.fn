@@ -8,7 +8,7 @@
     )
 ))
 
-(shield:validate input (gateway.request) "input")
+(set input (shield:validate (gateway.request) "input"))
 
 (mail:send
     rcpt (email)

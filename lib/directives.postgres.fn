@@ -16,7 +16,7 @@
 ;; @param {string} [subject_id]
 ;; @returns {bool}
 (def-fn dve:exists type subject_id="0"
-    (not-null? (db:scalar `SELECT 1 FROM ##directives WHERE subject_id=? AND type=?`
+    (not-null? (db:scalar `SELECT 1 FROM ##directives WHERE subject_id=?::text AND type=?`
         (subject_id) (type)
     ))
 )
@@ -42,7 +42,7 @@
 ;; @param {string} [subject_id]
 ;; @returns {int}
 (def-fn dve:get-int type subject_id="0"
-    (db:scalar `SELECT intval FROM ##directives WHERE subject_id=? AND type=?`
+    (db:scalar `SELECT intval FROM ##directives WHERE subject_id=?::text AND type=?`
         (subject_id) (type)
     )
 )
@@ -68,7 +68,7 @@
 ;; @param {string} [subject_id]
 ;; @returns {string}
 (def-fn dve:get-str type subject_id="0"
-    (db:scalar `SELECT strval FROM ##directives WHERE subject_id=? AND type=?`
+    (db:scalar `SELECT strval FROM ##directives WHERE subject_id=?::text AND type=?`
         (subject_id) (type)
     )
 )
@@ -94,7 +94,7 @@
 ;; @param {string} [subject_id]
 ;; @returns {object}
 (def-fn dve:get-obj type subject_id="0"
-    (json:parse (db:scalar `SELECT textval FROM ##directives WHERE subject_id=? AND type=?`
+    (json:parse (db:scalar `SELECT textval FROM ##directives WHERE subject_id=?::text AND type=?`
         (subject_id) (type)
     ))
 )
@@ -122,7 +122,7 @@
 ;; @param {string} type
 ;; @param {string} [subject_id]
 (def-fn dve:delete type subject_id="0"
-    (db:exec `DELETE FROM ##directives WHERE subject_id=? AND type=?`
+    (db:exec `DELETE FROM ##directives WHERE subject_id=?::text AND type=?`
         (subject_id) (type)
     )
 )

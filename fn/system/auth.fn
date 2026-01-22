@@ -14,7 +14,7 @@
     )
 ))
 
-(shield:validate input (gateway.request) "auth")
+(set input (shield:validate (gateway.request) "auth"))
 
 ;; Returns the first line of a text string.
 (def-fn firstline value
