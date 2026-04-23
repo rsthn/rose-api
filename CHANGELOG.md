@@ -1,3 +1,16 @@
+# v3.0.1 - Apr 23 2026
+
+#### Core
+- Added db-0000.sql (root script) for mysql and postgresql.
+- Updated dependencies to latest (rose and shield).
+
+#### QoL
+- Fixed minor bugs in directives.postgres.fn
+- Updated all system/* functions to use the new validation functions.
+- Added new "custom_methods" field to Gateway configuration section.
+
+<br/>
+
 # v3.0.0 - Jan 10 2026
 
 #### QoL
