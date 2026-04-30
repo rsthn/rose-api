@@ -1,3 +1,10 @@
+# v3.0.2 - Apr 30 2026
+
+#### Qol
+- Added example first function to documentation.
+
+<br/>
+
 # v3.0.1 - Apr 23 2026
 
 #### Core
