@@ -1,3 +1,10 @@
+# v3.0.3 - Apr 30 2026
+
+#### QoL
+- Added information about system functions and database setup.
+
+<br/>
+
 # v3.0.2 - Apr 30 2026
 
 #### Qol
