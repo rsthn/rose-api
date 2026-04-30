@@ -12,6 +12,29 @@ After installation edit your `composer.json` file to reflect your own project de
 
 <br/>
 
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Quick Test](#quick-test)
+- [Configuration](#configuration)
+    - [Database](#database)
+- [API Interaction](#api-interaction)
+    - [Placing your `.fn` files](#placing-your-fn-files)
+    - [Wind responses](#wind-responses)
+- [Writing Your First Function](#writing-your-first-function)
+    - [Reading request input](#reading-request-input)
+- [Authentication](#authentication)
+- [System Configuration](#system-configuration)
+    - [Database setup and migrations](#database-setup-and-migrations)
+    - [System functions](#system-functions)
+        - [Database maintenance](#database-maintenance)
+        - [Periodic tasks](#periodic-tasks)
+        - [Self-update](#self-update)
+        - [Misc](#misc)
+- [Dependencies](#dependencies)
+
+<br/>
+
 ## Requirements
 
 This project targets **PHP 8.0+**. The following PHP extensions are used by Rose itself — refer to the [rose-core README](https://github.com/rsthn/rose-core/blob/master/README.md) for the authoritative list.
@@ -224,6 +247,102 @@ Sentinel provides login and permission checks. Once configured (see the [Sentine
 ```
 
 A typical login flow uses `sentinel:login` (username + password) or `sentinel:authorize` (bearer token, requires `auth_bearer = true` in the Sentinel config). The skeleton already ships with working examples under `fn/auth/` (`login.fn`, `logout.fn`, etc.) — read those for a complete reference.
+
+<br/>
+
+# System Configuration
+
+The skeleton ships with a set of administrative tools under `fn/system/` that handle database bootstrapping, schema migrations, periodic tasks, and self-update. All of them share a common gatekeeper (`fn/system/auth.fn` — included automatically) that requires a `token` query parameter matching `config.system.token` in your active environment file (e.g. `dev.conf`). Set that token to a strong value in production.
+
+Invoke any system function via either route, for example:
+
+- `http://localhost/test/?f=system.database-status&token=YOUR_TOKEN`
+- `http://localhost/test/system/database-status?token=YOUR_TOKEN`
+
+### Database setup and migrations
+
+Schema is managed through incremental SQL scripts in `conf/database/`. Once renamed, every file must follow the pattern `db-<version>[-label].sql` — only files starting with `db-` are picked up by the migrator.
+
+The skeleton ships both MySQL and PostgreSQL versions of the same scripts, prefixed with the driver name:
+
+```
+conf/database/
+├── mysql-db-0000.sql
+├── mysql-db-0001-initial.sql
+├── postgres-db-0000.sql
+└── postgres-db-0001-initial.sql
+```
+
+**Pick the set that matches the `driver` field in your `[Database]` config**, delete the other set, and rename the remaining files to drop the prefix. For a PostgreSQL project you would end up with:
+
+```
+conf/database/
+├── db-0000.sql                # bootstrap (creates the `directives` table)
+├── db-0001-initial.sql        # users, permissions, tokens, sessions, ...
+└── db-NNNN-<label>.sql        # add your own revisions here
+```
+
+How it works:
+
+1. **Bootstrap (`db-0000.sql`)** — runs automatically the first time `database-status` or `database-update` is invoked **if** the `directives` table does not yet exist. It creates that table, which is then used to track which patches have been applied.
+2. **Revisions (`db-0001`, `db-0002`, …)** — applied in order by `system.database-update`. Each is wrapped in a transaction; on failure it rolls back and stops, so a broken patch will not leave the database half-migrated. Applied versions are recorded in the `db_status` directive.
+3. **Adding your own** — drop a new file in `conf/database/` following the same naming convention. Increment the version (`0002`, `0003`, …) and add a short label after the version for readability.
+
+To verify the database is reachable before running any migrations, call the built-in `now` function:
+
+```
+GET http://localhost/test/?f=now
+```
+
+If the response contains a non-empty `database_time`, the `[Database]` config is correct and you can proceed with `system.database-update`.
+
+### System functions
+
+Every function below is GET-only and requires the `token` parameter described above. All of them live in `fn/system/` and the example URLs use the query-based form.
+
+#### Database maintenance
+
+| Function | What it does |
+|---|---|
+| `system.database-status` | Reports current schema version, latest available version, number of pending patches, server vs. database time, and timezone match. Use this to confirm the database is reachable and to see what `database-update` would apply. |
+| `system.database-update` | Applies every pending patch from `conf/database/` in order (each wrapped in a transaction). On the first failure it rolls back that patch, stops, and reports which queries succeeded or failed. Output is rendered as HTML for readability. |
+
+#### Periodic tasks
+
+Periodic tasks are short Violet scripts placed in `conf/periodic/<task-name>.fn` and registered under the `[periodic_tasks]` section of your config (each entry is a JSON object with at least `period` in seconds and `next_at`). They are dispatched by `system.periodic-exec`, typically called from a cron job or external scheduler.
+
+| Function | What it does |
+|---|---|
+| `system.periodic-configure` | Reads `[periodic_tasks]` from the config and syncs it into the `periodic_tasks` directive: creates new tasks, updates the `period` of existing ones, advances `next_at` if it has fallen in the past, and deletes tasks that no longer appear in the config. |
+| `system.periodic-list` | HTML report of every registered task: when it runs next, how long until then, its period, and run count. Useful as a quick dashboard. |
+| `system.periodic-status` | JSON status of the periodic subsystem: whether it is enabled, the configured interval, whether `conf/periodic/` exists, last run timestamp, total run count, and the list of tasks. |
+| `system.periodic-exec` | Runs a single task by name (`task` parameter). Advances `next_at`, increments the run counter, and evaluates `conf/periodic/<task>.fn`. Errors are caught and logged via `trace-alt`. This is the function your scheduler should call. |
+| `system.periodic-unblock` | Resets the `periodic_last` directive to `0`. Use it when a previous run crashed mid-flight and the system thinks a task is still in progress. |
+
+#### Self-update
+
+| Function | What it does |
+|---|---|
+| `system.update` | Executes `conf/scripts/pull` (a `git clone` of the latest revision plus a `composer install`) and streams the output as HTML. Useful for triggering deploys from a webhook. |
+
+Before this function will work you must edit `conf/scripts/pull` and set the `git_repository_url` on the `SOURCE` line — by default it is the placeholder string `git_repository_url`, which causes the script to fail fast with `Repository URL is not set.` until configured. The file already includes a commented-out example showing how to inject credentials from environment variables, e.g.:
+
+```
+SOURCE https://{env:get GITHUB_USER}:{env:get GITHUB_PASS}@github.com/repo-user/repo-name
+```
+
+Uncomment that form (and the matching `GITHUB_USER` / `GITHUB_PASS` checks) instead of hard-coding credentials into the script.
+
+#### Misc
+
+| Function | What it does |
+|---|---|
+| `system.generate-password` | Returns a `{ password, hashed }` pair. If `value` is provided it hashes that, otherwise it generates a random 24-character password. The hash uses the algorithm and salts from the `[Sentinel]` config — drop the result into the `password` column of `users` to seed an admin account. |
+| `system.test-email` | Sends a test email to the address in the `email` parameter using the configured mailer. Use it to verify SMTP is set up correctly. |
+
+> The misc files (`generate-password.fn` and `test-email.fn`) are provided **only as an aid** when seeding initial passwords or verifying SMTP setup. Once your project is configured you can safely delete them — they are not used by anything else in the skeleton.
+
+> Note: `fn/system/auth.fn` is **not** an endpoint — it is the shared library `include`d by every system function to enforce the token gate and define helpers (`db_run_script`, `db_status_load`, `db_available_patches`). Do not invoke it directly.
 
 <br/>
 
